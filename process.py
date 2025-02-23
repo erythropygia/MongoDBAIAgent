@@ -1,6 +1,6 @@
 import json
 from pymongo import MongoClient
-from langchain.llms import LlamaCpp
+from langchain_community.llms import LlamaCpp
 from rag import get_relevant_schema
 import google.generativeai as genai
 from decouple import config
@@ -8,7 +8,7 @@ from decouple import config
 GEMINI_TOKEN = config('GEMINI_KEY')
 genai.configure(api_key=GEMINI_TOKEN)
 
-MODEL_PATH = "model/Qwen2.5.1-Coder-7B-Instruct-Q6_K.gguf"
+MODEL_PATH = "model/qwen2.5-coder-3b-instruct-fp16.gguf"
 
 llm = LlamaCpp(
     model_path=MODEL_PATH,
@@ -24,6 +24,12 @@ llm = LlamaCpp(
     use_mlock=True,          # --mlock (Belleği kilitle)
 )
 
+def select_generate_method(method, user_query, schema):
+    if method == 0:
+        return generate_mongo_query_local(user_query, schema)
+    elif method == 1:
+        return generate_mongo_query_gemini(user_query, schema)
+    
 def generate_mongo_query_local(user_query, schema):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
     prompt = f"""

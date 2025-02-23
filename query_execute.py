@@ -1,12 +1,13 @@
 import json
 from pymongo import MongoClient
+import certifi
 
 from pymongo import MongoClient
 import json
 from bson import ObjectId
 
 def execute_dynamic_mongo_query(connection_string, query, db_name, collection_name):
-    print(f"Query: {query}, Database: {db_name}, Collection: {collection_name}")
+   #print(f"Query: {query}, Database: {db_name}, Collection: {collection_name}")
 
     if isinstance(query, str):
         try:
@@ -15,7 +16,7 @@ def execute_dynamic_mongo_query(connection_string, query, db_name, collection_na
             print("Invalid JSON format.")
             return []
 
-    client = MongoClient(connection_string)
+    client = MongoClient(connection_string, tlsCAFile=certifi.where())
     db = client[db_name]
     collection = db[collection_name]
 
@@ -63,7 +64,6 @@ def execute_dynamic_mongo_query(connection_string, query, db_name, collection_na
 
 def clear_mongo_query(query):
     mongo_query = query.replace("```json", "").replace("```", "")
-    print(mongo_query)
     errors = []
     start_index = mongo_query.find('{')
     end_index = mongo_query.rfind('}')

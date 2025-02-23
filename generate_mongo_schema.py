@@ -1,6 +1,7 @@
 import os
 import json
 from pymongo import MongoClient
+import certifi
 
 def get_field_type(value):
     """MongoDB belgelerindeki veri tipini döndürür."""
@@ -45,7 +46,7 @@ def extract_mongo_schema(connection_string, schema_file="mongo_schema.json"):
         print(f"Schema already exists: {schema_file}")
         return
 
-    client = MongoClient(connection_string)
+    client = MongoClient(connection_string, tlsCAFile=certifi.where())
     schema_info = {}
 
     for db_name in client.list_database_names():

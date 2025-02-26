@@ -29,26 +29,28 @@ def load_schema_into_faiss():
     for i, doc in enumerate(docs):
         split_parts = text_splitter.split_text(doc)
         split_texts.extend(split_parts)
-        split_metadata.extend([metadata[i]] * len(split_parts))  # Metadata eşleşmesini sağladık!
+        split_metadata.extend([metadata[i]] * len(split_parts))
 
-    # FAISS veritabanını oluşturuyoruz
     faiss_db = FAISS.from_texts(split_texts, embeddings, metadatas=split_metadata)
-
-    # FAISS veritabanını kaydediyoruz (isteğe bağlı)
     faiss_db.save_local(FAISS_INDEX)
 
-def get_relevant_schema(user_query):
-    """FAISS veritabanından uygun MongoDB şemasını ve DB + koleksiyon bilgisini getirir."""
+def get_relevant_schema(user_query, k=10):
+    """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     faiss_db = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    docs = faiss_db.similarity_search_with_score(user_query, k=1)
+    docs = faiss_db.similarity_search_with_score(user_query, k=k)
 
     if not docs:
         return None, None, None
 
-    best_match = docs[0][0]
-    print("Best Match Metadata:", best_match.metadata)
-    db_name = best_match.metadata["database"]
-    collection_name = best_match.metadata["collection"]
-    return best_match.page_content, db_name, collection_name
+    matched_schemas = []
+    matched_dbs = []
+    matched_collections = []
+
+    for doc, _ in docs:
+        matched_schemas.append(doc.page_content)
+        matched_dbs.append(doc.metadata["database"])
+        matched_collections.append(doc.metadata["collection"])
+
+    return matched_schemas, matched_dbs, matched_collections

@@ -4,11 +4,14 @@ from langchain_community.llms import LlamaCpp
 from rag import get_relevant_schema
 import google.generativeai as genai
 from decouple import config
+import subprocess
 
 GEMINI_TOKEN = config('GEMINI_KEY')
 genai.configure(api_key=GEMINI_TOKEN)
 
 MODEL_PATH = "model/qwen2.5-coder-3b-instruct-fp16.gguf"
+
+GENERATED_SCRIPT_PATH = "run_script/generated_mongo_query.py"
 
 llm = LlamaCpp(
     model_path=MODEL_PATH,
@@ -23,6 +26,11 @@ llm = LlamaCpp(
     rope_freq_scale=0.5,      # --rope-freq-scale 0.5 (Bağlam ölçekleme)
     use_mlock=True,          # --mlock (Belleği kilitle)
 )
+
+def analysis_gemini(request):
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(request)
+    return response.text
 
 def select_generate_method(method, user_query, schema):
     if method == 0:
@@ -45,75 +53,44 @@ def generate_mongo_query_local(user_query, schema):
     response = llm.invoke(prompt)
     return response
 
-
-def analysis_gemini(request):
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(request)
-    return response.text
-
 def generate_mongo_query_gemini(user_query, schema):
-    """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
+    """ Kullanıcının doğal dildeki sorgusuna uygun Python kodu üretir. """
     prompt = f"""
-    Aşağıdaki mongo db collection şemasını dikkate alarak:
+    Aşağıdaki MongoDB şema(lar)ına dayanarak:
     {schema}
 
-    aşağıdaki soruya ait python'da şu fonksiyonda çalıştırabileceğim bir query öner:
-    
-    def execute_dynamic_mongo_query(connection_string, query, db_name, collection_name):
-    if isinstance(query, str):
-        try:
-            query = json.loads(query)
-        except json.JSONDecodeError:
-            print("Invalid JSON format.")
-            return []
-
-    client = MongoClient(connection_string)
-    db = client[db_name]
-    collection = db[collection_name]
-
-    if "filter" in query.get("query", ):
-        for condition in query["query"]["filter"]:
-            key = condition.get("key")
-            value = condition.get("value")
-            if key and value:
-                query_filter[key] = value
-
-    sort_list = []
-    sort = query.get("query", ).get("sort", [])
-    for item in sort:
-        if "key" in item and "order" in item:
-            sort_list.append((item["key"], item["order"]))
-
-    limit = query.get("limit", 0)
-
-    select = query.get("select", [])
-
-    projection = "field: 1 for field in select if select else None
-
-    if sort_list:
-        results = list(collection.find(query_filter, projection).sort(sort_list).limit(limit))
-    else:
-        results = list(collection.find(query_filter, projection).limit(limit))
-
-    def convert_objectid_to_str(item):
-        for key, value in item.items():
-            if isinstance(value, ObjectId):
-                item[key] = str(value)  
-            elif isinstance(value, dict): 
-                convert_objectid_to_str(value)
-            elif isinstance(value, list): 
-                for sub_item in value:
-                    if isinstance(sub_item, dict):
-                        convert_objectid_to_str(sub_item)
-        return item
-
-    results = [convert_objectid_to_str(result) for result in results]
-    return results
-    
+    Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
     {user_query}
-
-    Sadece query'i döndür başka herhangi bir bilgi verme.
+    
+    Sadece Python kodunu döndür ve kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
+    Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve Kod çalışmayı bitirdiğinde bir success mesajı yaz başka hiçbir açıklama ekleme. 
     """
 
     response = analysis_gemini(prompt.strip())
     return response
+
+def clean_and_replace_connection_string(code, connection_string):
+    """Kodun başındaki ```python ve ``` işaretlerini temizler, bağlantı dizisini değiştirir."""
+    code = code.replace("```python", "").replace("```", "").strip()
+    
+    code = code.replace('pymongo.MongoClient("mongodb://localhost:27017/")', 
+                        f'pymongo.MongoClient("{connection_string}")')
+    
+    return code
+
+def execute_generated_code(code, connection_string):
+    """AI tarafından üretilen Python kodunu temizleyip çalıştırır."""
+    code = clean_and_replace_connection_string(code, connection_string)
+
+    with open(GENERATED_SCRIPT_PATH, "w", encoding="utf-8") as f:
+        f.write(code)
+
+    try:
+        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=20)
+        return result.stdout.strip()
+    
+    except subprocess.TimeoutExpired:
+        return "Query execution timed out!"
+    
+    except Exception as e:
+        return f"Execution error: {str(e)}"

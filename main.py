@@ -105,7 +105,12 @@ while True:
     print("\nQuery Execution Result:\n")
     print(execution_result)
 
-    if "Traceback" in execution_result or "Error" in execution_result or "Exception" in execution_result:
+    if ("Traceback" in execution_result or 
+        "Error" in execution_result or 
+        "Exception" in execution_result or
+        "Query execution timed out!" in execution_result or 
+        "Execution error" in execution_result in execution_result):
+        
         print("\nAn error occurred while executing the script.")
         print("Sending error back to the model to generate a new query...\n")
 

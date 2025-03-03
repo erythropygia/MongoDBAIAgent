@@ -36,7 +36,7 @@ def analysis_gemini(request):
     response = model.generate_content(request)
     return response.text
 
-def select_generate_method(method, user_query, schema, script = None, execution_query = None):
+def select_generate_method(method, user_query = None, schema = None, script = None, execution_query = None, error_feedbacks = None):
     loading = LoadingAnimation("Generating Query...")
     loading.start()
     if method == 0:
@@ -47,7 +47,7 @@ def select_generate_method(method, user_query, schema, script = None, execution_
         return generate_mongo_query_gemini(user_query, schema)
     elif method == 2:
         loading.stop()
-        return failed_response_repair(script, execution_query, schema)
+        return failed_response_repair(user_query, script, execution_query, schema, error_feedbacks)
 
     
 def generate_example_queries(db_name, collection, structure):
@@ -109,32 +109,32 @@ def generate_mongo_query_gemini(user_query, schema):
     Aşağıdaki MongoDB şema(lar)ına dayanarak:
     {schema}
 
-    Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz (bu query eğer veri analizi dışında bir yazma ya da silme işlemi istiyorsa en bu işlemi gerçekleştirme mesajımın en sonundaki işlemi gerçekleştir):
+    Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
     {user_query}
     
     Sadece Python kodunu döndür ve datalardaki objectId'leri gösterme. Kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
     Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod çalışmayı bitirdiğinde ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
 
-    Eğer gelen query kötü niyetliyse, bir data silme, değiştirme ya da istekteki schema ile alakasızsa bunu gerçekleştirmek ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
+    Eğer kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
     """
-
     response = analysis_gemini(prompt.strip())
     return response
 
-def failed_response_repair(script, execution_query, schema):
+def failed_response_repair(user_query, script, execution_query, schema, error_feedbacks):
     prompt = f"""
     Aşağıdaki MongoDB şema(lar)ına dayanarak:
     {schema}
 
     Ürettiğin kodda {script} 
-    Aşağıdaki hatayı alıyorum:
-    {execution_query}
+    Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmeni istemiştim:
+    Bana sonuç olarak bunu dönen bir kod yazdın {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
     
     Bu kodu düzenle ve düzenlerken sadece python kodunu döndür ve kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
     Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod başarıyla çalışırsa ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
-    """
 
-    response = analysis_gemini(prompt.strip())
+    Ayrıca kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
+    """
+    response = analysis_gemini(prompt.strip()) 
     return response
 
 def clean_and_replace_connection_string(code, connection_string):
@@ -156,13 +156,9 @@ def execute_generated_code(code, connection_string):
         f.write(code)
 
     try:
-        result = f"""
-        Generated Script:
-        {code}
-        """
         script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
 
-        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, cwd=script_dir, timeout=20)
+        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=20)
         loading.stop()
         return result.stdout.strip()
     

@@ -1,13 +1,23 @@
-import json
+import json, os
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from process import generate_example_queries
+from text_class import LoadingAnimation
+
 
 SCHEMA_FILE = "mongo_schema.json"
 FAISS_INDEX = "faiss_mongo_schema"
 
 def load_schema_into_faiss():
-    """MongoDB şemasını FAISS içine yükler."""
+    """MongoDB şemasını FAISS içine yükler ve örnek sorguları ekler."""
+    if os.path.exists(FAISS_INDEX):
+        print("\nFAISS index already exists. This process is skipped")
+        return
+    
+    loading = LoadingAnimation("Generating FAISS schema")
+    loading.start()
+
     with open(SCHEMA_FILE, "r", encoding="utf-8") as f:
         schema_data = json.load(f)
 
@@ -16,15 +26,24 @@ def load_schema_into_faiss():
 
     docs = []
     metadata = []
+    
+    loading.stop()
+    loading = LoadingAnimation("Generating example queries for FAISS schema")
+    loading.start()
 
     for db_name, collections in schema_data.items():
         for collection_name, structure in collections.items():
             doc_text = f"Database: {db_name}, Collection: {collection_name}, Schema: {json.dumps(structure, indent=2)}"
             docs.append(doc_text)
-            metadata.append({"database": db_name, "collection": collection_name})
+            metadata.append({"database": db_name, "collection": collection_name, "schema": structure, "queries": generate_example_queries(db_name, collection_name, structure)})
 
     split_texts = []
     split_metadata = []
+    
+    loading.stop()
+    print("Loading schema into FAISS...")
+    loading = LoadingAnimation("Indexing Schema")
+    loading.start()
 
     for i, doc in enumerate(docs):
         split_parts = text_splitter.split_text(doc)
@@ -34,8 +53,16 @@ def load_schema_into_faiss():
     faiss_db = FAISS.from_texts(split_texts, embeddings, metadatas=split_metadata)
     faiss_db.save_local(FAISS_INDEX)
 
-def get_relevant_schema(user_query, k=10):
+    loading.stop()
+    print("Schema successfully loaded into FAISS.\n")
+
+
+def get_relevant_schema(user_query, k=5):
+    #K bir DB'deki maksimum collection sayısı olabilir
     """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
+    print("\nGetting relevant schema for your query...")
+    loading = LoadingAnimation("Searching Schema")
+    loading.start()
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     faiss_db = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
@@ -47,10 +74,16 @@ def get_relevant_schema(user_query, k=10):
     matched_schemas = []
     matched_dbs = []
     matched_collections = []
+    matched_queries = [] 
 
     for doc, _ in docs:
         matched_schemas.append(doc.page_content)
         matched_dbs.append(doc.metadata["database"])
         matched_collections.append(doc.metadata["collection"])
 
-    return matched_schemas, matched_dbs, matched_collections
+        queries = doc.metadata.get("queries", [])
+        if queries:
+            matched_queries.append(queries)
+            
+    loading.stop()
+    return matched_schemas, matched_dbs, matched_collections, matched_queries

@@ -5,6 +5,16 @@ from generate_mongo_schema import extract_mongo_schema
 from rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from process import select_generate_method, execute_generated_code
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+folders_to_create = ['run_script', 'model']
+
+for folder in folders_to_create:
+    folder_path = os.path.join(current_dir, folder)
+    if not os.path.exists(folder_path):
+        print(f"{folder} folder not found. Creating...")
+        os.makedirs(folder_path)
+        print(f"{folder} folder not found. Creating...")
+
 
 def initialize_schema(connection_string, schema_file="mongo_schema.json"):
     if not os.path.exists(schema_file):

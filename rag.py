@@ -4,15 +4,26 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from process import generate_example_queries
 from text_class import LoadingAnimation
+import pandas as pd
 
 
 SCHEMA_FILE = "mongo_schema.json"
 FAISS_INDEX = "faiss_mongo_schema"
+EXCEL_FILE = "queries_for_rag.xlsx"
+
+FAISS_DB = None
+
 
 def load_schema_into_faiss():
     """MongoDB şemasını FAISS içine yükler ve örnek sorguları ekler."""
     if os.path.exists(FAISS_INDEX):
         print("\nFAISS index already exists. This process is skipped")
+        global FAISS_DB 
+        loading = LoadingAnimation("Loading FAISS schema")
+        loading.start()
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        FAISS_DB = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
+        loading.stop()
         return
     
     loading = LoadingAnimation("Generating FAISS schema")
@@ -62,11 +73,8 @@ def get_relevant_schema(user_query, k=5):
     """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
     print("\nGetting relevant schema for your query...")
     loading = LoadingAnimation("Searching Schema")
-    loading.start()
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    faiss_db = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    docs = faiss_db.similarity_search_with_score(user_query, k=k)
+    docs = FAISS_DB.similarity_search_with_score(user_query, k=k)
 
     if not docs:
         return None, None, None
@@ -87,3 +95,22 @@ def get_relevant_schema(user_query, k=5):
             
     loading.stop()
     return matched_schemas, matched_dbs, matched_collections, matched_queries
+
+def save_query_to_excel(db_names, collection_names, query):
+    db_str = ", ".join(db_names)
+    collection_str = ", ".join(collection_names)
+    
+    new_data = pd.DataFrame([[db_str, collection_str, query]], columns=["DB", "Collections", "Query"])
+
+    if not os.path.exists(EXCEL_FILE):
+        new_data.to_excel(EXCEL_FILE, index=False)
+    else:
+        existing_data = pd.read_excel(EXCEL_FILE)
+
+        if existing_data.empty:
+            new_data.to_excel(EXCEL_FILE, index=False)
+        else:
+            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+            updated_data.to_excel(EXCEL_FILE, index=False)
+
+        print(f"Data save success. Thank you!")

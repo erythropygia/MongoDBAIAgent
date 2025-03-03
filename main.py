@@ -1,9 +1,8 @@
 import os
 import argparse
 from generate_mongo_schema import extract_mongo_schema
-from rag import load_schema_into_faiss, get_relevant_schema
+from rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from process import select_generate_method, execute_generated_code
-from text_class import LoadingAnimation
 
 
 parser = argparse.ArgumentParser(description="MongoDB Query Generator")
@@ -66,3 +65,7 @@ while True:
             print(execution_result)
         else:
             print("\nThe model couldn't generate a valid fix. Please try again.")
+    
+    confirmation = input("\nIs the response correct? (y/N): ").strip().lower()
+    if confirmation == "y":
+        save_query_to_excel(db_name, collection_name, user_query)

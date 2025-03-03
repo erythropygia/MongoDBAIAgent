@@ -1,4 +1,4 @@
-import json
+import json,os
 from pymongo import MongoClient
 from langchain_community.llms import LlamaCpp
 import google.generativeai as genai
@@ -160,7 +160,9 @@ def execute_generated_code(code, connection_string):
         Generated Script:
         {code}
         """
-        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=20)
+        script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
+
+        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, cwd=script_dir, timeout=20)
         loading.stop()
         return result.stdout.strip()
     

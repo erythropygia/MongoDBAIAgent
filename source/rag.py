@@ -2,14 +2,17 @@ import json, os
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from process import generate_example_queries
-from text_class import LoadingAnimation
+from source.process import generate_example_queries
+from source.text_class import LoadingAnimation
 import pandas as pd
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.filterwarnings("ignore", category=Warning) 
 
 SCHEMA_FILE = "mongo_schema.json"
 FAISS_INDEX = "faiss_mongo_schema"
-EXCEL_FILE = "queries_for_rag.xlsx"
+EXCEL_FILE = "faiss_mongo_schema/queries_for_rag.xlsx"
 
 FAISS_DB = None
 

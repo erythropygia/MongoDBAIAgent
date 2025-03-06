@@ -1,4 +1,4 @@
-import json,os
+import json, os
 from pymongo import MongoClient
 from langchain_community.llms import LlamaCpp
 import google.generativeai as genai
@@ -6,7 +6,8 @@ from decouple import config
 import subprocess
 import time
 import re
-from text_class import LoadingAnimation
+import yaml
+from source.text_class import LoadingAnimation
 
 GEMINI_TOKEN = config('GEMINI_KEY')
 genai.configure(api_key=GEMINI_TOKEN)
@@ -14,6 +15,9 @@ genai.configure(api_key=GEMINI_TOKEN)
 MODEL_PATH = "model/qwen2.5-coder-3b-instruct-fp16.gguf"
 
 GENERATED_SCRIPT_PATH = "run_script/generated_mongo_query.py"
+
+with open("prompts.yaml", "r", encoding="utf-8") as file:
+    prompts = yaml.safe_load(file)
 
 """
 llm = LlamaCpp(
@@ -51,28 +55,7 @@ def select_generate_method(method, user_query = None, schema = None, script = No
 
     
 def generate_example_queries(db_name, collection, structure):
-    prompt = f"""
-    Aşağıdaki MongoDB Database {db_name} ve Collection {collection} isimlerine dikkat ederek ve aşağıdaki şemaya uyarak:
-    {structure}
-
-    Bana Türkçe metinsel olarak örnek güzel üret ve json formatında ver:
-
-    Örnek sorgu: 
-    abc@example.com mailli kişi en son ne zaman analiz yapmıştır?
-
-    Cevabın da aşağıdaki gibi bir string json listesi olmalı 
-    Örneğin: 
-    [
-        "ÖRNEK QUERY (METİN OLARAK)",
-        "ÖRNEK QUERY2 (METİN OLARAK)",
-        "ÖRNEK QUERY3 (METİN OLARAK)",
-        .
-        .
-        .
-    ]
-
-    10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
-    """
+    prompt = prompts["generate_example_queries"].format(db_name=db_name, collection=collection, structure=structure)
     try:
         response = analysis_gemini(prompt.strip())
     except Exception as e:
@@ -91,49 +74,17 @@ def generate_example_queries(db_name, collection, structure):
     
 def generate_mongo_query_local(user_query, schema):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
-    prompt = f"""
-    Given the following MongoDB schema:
-    {schema}
-
-    Convert the following user query into a MongoDB query:
-    "{user_query}"
-
-    Return only the JSON query without any explanation.
-    """
-
-    #response = llm.invoke(prompt)
-    #return response
+    prompt = prompts["generate_mongo_query"].format(schema=schema, user_query=user_query)
+    # response = llm.invoke(prompt)
+    # return response
 
 def generate_mongo_query_gemini(user_query, schema):
-    prompt = f"""
-    Aşağıdaki MongoDB şema(lar)ına dayanarak:
-    {schema}
-
-    Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
-    {user_query}
-    
-    Sadece Python kodunu döndür ve datalardaki objectId'leri gösterme. Kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
-    Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod çalışmayı bitirdiğinde ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
-
-    Eğer kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
-    """
+    prompt = prompts["generate_mongo_query"].format(schema=schema, user_query=user_query)
     response = analysis_gemini(prompt.strip())
     return response
 
 def failed_response_repair(user_query, script, execution_query, schema, error_feedbacks):
-    prompt = f"""
-    Aşağıdaki MongoDB şema(lar)ına dayanarak:
-    {schema}
-
-    Ürettiğin kodda {script} 
-    Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmeni istemiştim:
-    Bana sonuç olarak bunu dönen bir kod yazdın {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
-    
-    Bu kodu düzenle ve düzenlerken sadece python kodunu döndür ve kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
-    Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod başarıyla çalışırsa ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
-
-    Ayrıca kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
-    """
+    prompt = prompts["failed_response_repair"].format(schema=schema, script=script, user_query=user_query, execution_query=execution_query, error_feedbacks=error_feedbacks)
     response = analysis_gemini(prompt.strip()) 
     return response
 
@@ -169,4 +120,4 @@ def execute_generated_code(code, connection_string):
     except Exception as e:
         loading.stop()
         return f"Execution error: {str(e)}"
-    
+

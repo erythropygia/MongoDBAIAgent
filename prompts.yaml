@@ -20,36 +20,39 @@ generate_example_queries: |
 
   10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
 
-generate_mongo_query_local: |
-  Given the following MongoDB schema:
-  {schema}
-
-  Convert the following user query into a MongoDB query:
-  "{user_query}"
-
-  Return only the JSON query without any explanation.
-
-generate_mongo_query_gemini: |
+generate_mongo_query: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
 
   Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
   {user_query}
-  
-  Sadece Python kodunu döndür ve datalardaki objectId'leri gösterme. Kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
-  Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod çalışmayı bitirdiğinde ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
 
-  Eğer kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz, örnek kullanım önerme. 
+  Kodda verilerdeki `ObjectId`'leri gösterme. Kodda `try-catch` blokları kullanarak aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+  
+  **Önemli:** 
+  - Kod yalnızca veri okuma (query) işlemlerini yapacak, **veri silme, güncelleme ya da ekleme** işlemleri **kesinlikle yapılmayacak**.
+  - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir script oluştur.
+  
+  Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
+
 
 failed_response_repair: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
 
   Ürettiğin kodda {script} 
-  Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmeni istemiştim:
-  Bana sonuç olarak bunu dönen bir kod yazdın {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
-  
-  Bu kodu düzenle ve düzenlerken sadece python kodunu döndür ve kodda try-catch bloklarıyla birlikte client = pymongo.MongoClient("mongodb://localhost:27017/") yapısını kullan. 
-  Eğer kod catch'e düşerse hata mesajı olarak ekrana "Exception" yaz ve kod başarıyla çalışırsa ekrana mutlaka bir response yaz başka hiçbir açıklama ekleme. 
+  Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmemi istemiştim:
+  Bana sonuç olarak bunu dönen bir kod yazdın: {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
 
-  Ayrıca kullanıcı seni ilgili db şemasında olmayan bir alan ya da işlev için kullanmak istiyorsa bu isteğini gerçekleştirmek yerine ekrana "Bu işlemi gerçekleştirmeye yetkim yok" yazan bir python scripti yaz
+  Lütfen bu kodu düzenle ve düzenlerken **sadece Python kodunu** döndür, örnek kullanım önerme. Kodda `try-catch` bloklarıyla birlikte aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+  
+  **Önemli:**
+  - Kod yalnızca **veri okuma (query)** işlemlerini yapacak, **veri silme, güncelleme veya ekleme** işlemleri **kesinlikle yapılmayacak**.
+  - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir script oluştur.
+  
+  - Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak.
+  - Kod başarıyla çalıştığında mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
+

@@ -20,6 +20,8 @@ def initialize_schema(connection_string, schema_file="./mongo_schema/mongo_schem
         print("\nDatabase schema file not found. Generating schema...")
         extract_mongo_schema(connection_string)
         print("Schema extraction completed.\n")
+    else:
+        print("\nDatabase schema file found. Loading schema...\n")
 
 
 def process_query(query, connection_string, query_type):

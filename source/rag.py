@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 warnings.filterwarnings("ignore", category=Warning) 
 
-SCHEMA_FILE = "mongo_schema.json"
+SCHEMA_FILE = "mongo_schema/mongo_schema.json"
 FAISS_INDEX = "faiss_mongo_schema"
 EXCEL_FILE = "faiss_mongo_schema/queries_for_rag.xlsx"
 

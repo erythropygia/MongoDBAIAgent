@@ -2,7 +2,7 @@ import json, os
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from source.process import generate_example_queries
+from source.llm_pipeline import generate_example_queries
 from source.text_class import LoadingAnimation
 import pandas as pd
 
@@ -17,7 +17,7 @@ EXCEL_FILE = "faiss_mongo_schema/queries_for_rag.xlsx"
 FAISS_DB = None
 
 
-def load_schema_into_faiss():
+def load_schema_into_faiss(method):
     """MongoDB şemasını FAISS içine yükler ve örnek sorguları ekler."""
     if os.path.exists(FAISS_INDEX):
         print("\nFAISS index already exists. This process is skipped")
@@ -49,7 +49,7 @@ def load_schema_into_faiss():
         for collection_name, structure in collections.items():
             doc_text = f"Database: {db_name}, Collection: {collection_name}, Schema: {json.dumps(structure, indent=2)}"
             docs.append(doc_text)
-            metadata.append({"database": db_name, "collection": collection_name, "schema": structure, "queries": generate_example_queries(db_name, collection_name, structure)})
+            metadata.append({"database": db_name, "collection": collection_name, "schema": structure, "queries": generate_example_queries(method, db_name, collection_name, structure)})
 
     split_texts = []
     split_metadata = []

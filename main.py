@@ -3,7 +3,8 @@ import sys
 import argparse
 from source.generate_mongo_schema import extract_mongo_schema
 from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
-from source.process import select_generate_method, execute_generated_code
+from source.llm_pipeline import select_generate_method, execute_generated_code
+from source.process.qwen_process import wake_up_qwen
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 folders_to_create = ['run_script', 'model', 'mongo_schema']
@@ -37,14 +38,14 @@ def process_query(query, connection_string, query_type):
     if not script:
         print("Script generation failed.")
         return
-
+    print(script)
     execution_result = execute_generated_code(script, connection_string)
     print("\nQuery Execution Result:\n", execution_result)
 
-    refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text)
+    refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text,query_type)
 
 
-def refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text):
+def refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text, query_type):
     error_feedback_history = []
     for i in range(3): 
         confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
@@ -60,8 +61,13 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
         
         print("\nRetrying with the corrected script...\n")
 
+        if(query_type == 0):
+            query_type = 2
+        else:
+            query_type = 3
+            
         new_script = select_generate_method(
-            2, user_query=query, script=script, execution_query=execution_result, schema=schema_text, error_feedbacks = retry_reason
+            query_type, user_query=query, script=script, execution_query=execution_result, schema=schema_text, error_feedbacks = retry_reason
         )
         
         if new_script:
@@ -89,8 +95,13 @@ def main():
     parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
     args = parser.parse_args()
 
+    if(args.query_type == 0):
+        print("\nSelected Query Type: Local Model")
+        print("\nBuilding the local model...")
+        wake_up_qwen()
+
     initialize_schema(args.connection_string)
-    load_schema_into_faiss()
+    load_schema_into_faiss(args.query_type)
 
     while True:
         user_query = input("\nEnter your query (type 'exit' to quit): ").strip()

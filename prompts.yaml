@@ -1,4 +1,15 @@
-generate_example_queries: |
+######################
+#########QWEN##########
+######################
+system_message: |
+  Sen MongoDB ve Python'da usta bir yapay zeka modelisin. Kullanıcının girdiği sorguları çalıştıracak ya da görselleştirecek python kodları üret.
+  Bu sorgular sadece veri okuma işlemlerini yapacak, veri silme, güncelleme ya da ekleme işlemleri **kesinlikle yapılmayacak**.
+  Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir **python kodu oluşturarak** cevap ver.
+
+system_example_queries_message: |
+  Sen MongoDB'de uzman bir yapay zeka modelisin. Kullanıcının istediği liste çıktısını üret ve sadece JSON listesi verisini döndür.
+
+generate_example_queries_qwen: |
   Aşağıdaki MongoDB Database {db_name} ve Collection {collection} isimlerine dikkat ederek ve aşağıdaki şemaya uyarak:
   {structure}
 
@@ -20,7 +31,63 @@ generate_example_queries: |
 
   10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
 
-generate_mongo_query: |
+generate_mongo_query_qwen: |
+  Aşağıdaki MongoDB şema(lar)ına dayanarak:
+  {schema}
+
+  Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
+  {user_query}
+
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz, örnek kullanım önerme. 
+  Kodda verilerdeki `ObjectId`'leri gösterme. Kodda `try-catch` blokları kullanarak aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+  
+  Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
+
+
+failed_response_repair_qwen: |
+  Aşağıdaki MongoDB şema(lar)ına dayanarak:
+  {schema}
+
+  Ürettiğin kodda {script} 
+  Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmemi istemiştim:
+  Bana sonuç olarak bunu dönen bir kod yazdın: {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
+
+  Lütfen bu kodu düzenle ve düzenlerken **sadece Python kodunu** döndür, örnek kullanım önerme. Kodda `try-catch` bloklarıyla birlikte aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+  
+  - Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak.
+  - Kod başarıyla çalıştığında mutlaka bir **response** yazılacak.
+  - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir python kodu oluşturarak cevap ver.
+
+
+######################
+#########GEMINI##########
+######################
+
+generate_example_queries_gemini: |
+  Aşağıdaki MongoDB Database {db_name} ve Collection {collection} isimlerine dikkat ederek ve aşağıdaki şemaya uyarak:
+  {structure}
+
+  Bana Türkçe metinsel olarak örnek güzel üret ve json formatında ver:
+
+  Örnek sorgu: 
+  abc@example.com mailli kişi en son ne zaman analiz yapmıştır?
+
+  Cevabın da aşağıdaki gibi bir string json listesi olmalı 
+  Örneğin: 
+  [
+      "ÖRNEK QUERY (METİN OLARAK)",
+      "ÖRNEK QUERY2 (METİN OLARAK)",
+      "ÖRNEK QUERY3 (METİN OLARAK)",
+      .
+      .
+      .
+  ]
+
+  10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
+
+generate_mongo_query_gemini: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
 
@@ -38,7 +105,7 @@ generate_mongo_query: |
   Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
 
 
-failed_response_repair: |
+failed_response_repair_gemini: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
 

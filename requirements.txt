@@ -1,0 +1,9 @@
+pymongo
+certifi
+pyyaml
+langchain
+pandas
+decouple
+google-generativeai
+llama-cpp-python
+sentence-transformers

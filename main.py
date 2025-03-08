@@ -80,11 +80,11 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
                 "Query execution timed out!" in execution_result or 
                 "Execution error" in execution_result in execution_result):
                 
-                print(f"\nAn error occurred while executing the script. Trying again {i}...\n")
+                print(f"\nAn error occurred while executing the script. Trying again {i + 1}...\n")
             else:
                 print("\nQuery Execution Result (After Fix):\n", execution_result)
         else:
-            print(f"\nThe model couldn't generate a valid fix. Trying again {i}...\n")
+            print(f"\nThe model couldn't generate a valid fix. Trying again {i + 1}...\n")
 
     print("\nUnable to resolve the issue after 3 attempts. Moving on to the next request...")
         

@@ -1,8 +1,10 @@
 from llama_cpp import Llama
 import yaml
 import sys
+import os
 
-MODEL_PATH = "model/Qwen2.5.1-Coder-7B-Instruct-Q6_K.gguf"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+MODEL_PATH = "model/qwen2.5-coder-3b-instruct-fp16.gguf"
 LLM = None
 
 with open("prompts.yaml", "r", encoding="utf-8") as file:
@@ -12,7 +14,7 @@ with open("prompts.yaml", "r", encoding="utf-8") as file:
 def wake_up_qwen():
     max_context_window = 4096
     global LLM
-    LLM = Llama(model_path="model/Qwen2.5.1-Coder-7B-Instruct-Q6_K.gguf",
+    LLM = Llama(model_path= MODEL_PATH,
                 n_gpu_layers=100,
                 n_ctx=max_context_window)
 

@@ -1,4 +1,4 @@
-import subprocess, time, re, os, yaml
+import subprocess, time, re, os, yaml, sys
 from source.text_class import LoadingAnimation
 from source.process.qwen_process import generate_local
 from source.process.gemini_process import generate_gemini
@@ -29,13 +29,14 @@ def select_generate_method(method, user_query = None, schema = None, script = No
 def repair_response(method, user_query, script, execution_query, schema, error_feedbacks):
     if(method == 0):
         prompt = prompts["failed_response_repair_qwen"].format(schema=schema, script=script, user_query=user_query, execution_query=execution_query, error_feedbacks=error_feedbacks)
-        response = generate_local(prompt.strip()) 
+        response = generate_local(prompt.strip())
+        return response
     elif(method == 1):
         prompt = prompts["failed_response_repair_gemini"].format(schema=schema, script=script, user_query=user_query, execution_query=execution_query, error_feedbacks=error_feedbacks)
         response = generate_gemini(prompt.strip()) 
         return response
 
-def generate_example_queries(method, model_name, db_name, collection, structure):
+def generate_example_queries(method, db_name, collection, structure):
     try:
         if(method == 0):
             prompt = prompts["generate_example_queries_qwen"].format(db_name=db_name, collection=collection, structure=structure)
@@ -84,8 +85,8 @@ def execute_generated_code(code, connection_string):
 
     try:
         script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
-
-        result = subprocess.run(["python", GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=60)
+        python_cmd = "python" if sys.platform.startswith("win") else "python3"
+        result = subprocess.run([python_cmd, GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=60)
         loading.stop()
         return result.stdout.strip()
     

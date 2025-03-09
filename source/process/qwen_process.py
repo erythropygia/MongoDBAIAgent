@@ -49,27 +49,20 @@ def generate_local(prompt):
                  stop=["<|im_end|>"], 
                  stream=True)  
 
-    sys.stdout.write("Agent: ")
-    sys.stdout.flush()  
+    print("Agent: ", end="", flush=True)
 
     assistant_message = ""  
 
     for output in stream:
         token_text = output["choices"][0]["text"]
-        sys.stdout.write(token_text)
-        sys.stdout.flush()
+        print(token_text, end="", flush=True)
         assistant_message += token_text  
 
     sys.stdout.write("\n")  
     sys.stdout.flush()
     
-    # Assistant cevabını chat geçmişine ekle
     formatted_assistant_message = f"<|im_start|>assistant\n{assistant_message}<|im_end|>"
     chat_history.append(formatted_assistant_message)
-
-    print("\n=== UPDATED CHAT HISTORY ===")
-    print("\n".join(chat_history))
-    print("============================\n")
 
     return assistant_message
 

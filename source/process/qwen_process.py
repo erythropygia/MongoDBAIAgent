@@ -35,7 +35,7 @@ def generate_local(prompt, chat_history=None):
             context += message + "\n"
     context += formatted_user_message + "\n<|im_start|>assistant\n"
 
-    priny(context)
+    print(context)
 
     stream_text = ""
     stream = LLM(context, 

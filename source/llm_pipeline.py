@@ -10,6 +10,7 @@ with open("prompts.yaml", "r", encoding="utf-8") as file:
 
 def select_generate_method(method, user_query = None, schema = None, script = None, execution_query = None, error_feedbacks = None):
     loading = LoadingAnimation("Generating Query...")
+    print("Generating Query...")
     loading.start()
     if method == 0:
         loading.stop()

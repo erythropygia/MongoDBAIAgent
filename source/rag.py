@@ -80,24 +80,28 @@ def get_relevant_schema(user_query, k=5):
     docs = FAISS_DB.similarity_search_with_score(user_query, k=k)
 
     if not docs:
-        return None, None, None
+        return []
 
-    matched_schemas = []
-    matched_dbs = []
-    matched_collections = []
-    matched_queries = [] 
+    schema_info_list = [] 
 
     for doc, _ in docs:
-        matched_schemas.append(doc.page_content)
-        matched_dbs.append(doc.metadata["database"])
-        matched_collections.append(doc.metadata["collection"])
+        schema_info = {} 
+        schema_info["DBName"] = doc.metadata["database"]
+        schema_info["Collection"] = doc.metadata["collection"]
 
-        queries = doc.metadata.get("queries", [])
-        if queries:
-            matched_queries.append(queries)
+        full_page_content = doc.page_content
+        schema_part = full_page_content.split("Schema: ", 1) 
+
+        if len(schema_part) > 1: 
+            schema_info["Schema"] = schema_part[1]
+        else:
+            schema_info["Schema"] = full_page_content 
+
+
+        schema_info_list.append(schema_info)
             
     loading.stop()
-    return matched_schemas, matched_dbs, matched_collections, matched_queries
+    return schema_info_list
 
 def save_query_to_excel(db_names, collection_names, query):
     db_str = ", ".join(db_names)

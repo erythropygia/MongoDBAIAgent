@@ -26,15 +26,14 @@ def initialize_schema(connection_string, schema_file="./mongo_schema/mongo_schem
 
 
 def process_query(query, connection_string, query_type):
-    schema_text, db_name, collection_name, _ = get_relevant_schema(query)
-
-    if not schema_text:
+    schema_data = get_relevant_schema(query)
+    if not schema_data:
         print("No suitable schema found. Please try again.")
         return
 
-    print(f"Relevant Schema Found: `{db_name}.{collection_name}`")
+    print(f"Relevant Schema(s) Found: `{schema_data[0]['DBName']}`, `{schema_data[0]['Collection']}`")
 
-    script = select_generate_method(query_type, query, schema_text)
+    script = select_generate_method(query_type, query, schema_data)
     if not script:
         print("Script generation failed.")
         return
@@ -42,7 +41,7 @@ def process_query(query, connection_string, query_type):
     execution_result = execute_generated_code(script, connection_string)
     print("\nQuery Execution Result:\n", execution_result)
 
-    refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text,query_type)
+    refine_query_if_needed(schema_data[0]["DBName"] , schema_data[0]["Collection"], query, script, execution_result, connection_string, schema_data[0]["Schema"],query_type)
 
 
 def refine_query_if_needed(db_name, collection_name, query, script, execution_result, connection_string, schema_text, query_type):

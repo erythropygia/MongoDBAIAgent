@@ -4,7 +4,7 @@ import sys
 import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-MODEL_PATH = "model/qwen2.5-coder-3b-instruct-fp16.gguf"
+MODEL_PATH = "model/unsloth.Q4_K_M.gguf"
 LLM = None
 
 with open("prompts.yaml", "r", encoding="utf-8") as file:
@@ -12,7 +12,7 @@ with open("prompts.yaml", "r", encoding="utf-8") as file:
 
 
 def wake_up_qwen():
-    max_context_window = 4096
+    max_context_window = 8192
     global LLM
     LLM = Llama(model_path= MODEL_PATH,
                 n_gpu_layers=100,
@@ -21,7 +21,11 @@ def wake_up_qwen():
 
 def generate_local(prompt, chat_history=None):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
-    system_message = prompts["system_message"]
+    if(MODEL_PATH.__contains__("unsloth")):
+        system_message = prompts["system_message_r1"]
+    else:
+        system_message = prompts["system_message"]
+
     prompt_template = f"<|im_start|>system\n{system_message}<|im_end|>\n"
     formatted_user_message = f"<|im_start|>user\n{prompt}<|im_end|>"
 
@@ -32,7 +36,14 @@ def generate_local(prompt, chat_history=None):
     context += formatted_user_message + "\n<|im_start|>assistant\n"
 
     stream_text = ""
-    stream = LLM(context, max_tokens=4096, temperature=0.7, stop=["<|im_end|>"], stream=True)  
+    stream = LLM(context, 
+             max_tokens=4096, 
+             temperature=0.7,                
+             top_k=40,
+             top_p=0.95,
+             stop=["<|im_end|>"], 
+             stream=True)  
+
 
     sys.stdout.write("Agent: ")  # print() yerine sys.stdout.write() kullanıyoruz
     sys.stdout.flush()  # Tamponu zorla boşalt

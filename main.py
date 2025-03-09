@@ -37,7 +37,7 @@ def process_query(query, connection_string, query_type):
     if not script:
         print("Script generation failed.")
         return
-    print(script)
+    
     execution_result = execute_generated_code(script, connection_string)
     print("\nQuery Execution Result:\n", execution_result)
 
@@ -71,7 +71,6 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
         
         if new_script:
             execution_result = execute_generated_code(new_script, connection_string)
-            print("Sending error back to the model to generate a new query...\n")
 
             if ("Traceback" in execution_result or 
                 "Error" in execution_result or 
@@ -79,11 +78,11 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
                 "Query execution timed out!" in execution_result or 
                 "Execution error" in execution_result in execution_result):
                 
-                print(f"\nAn error occurred while executing the script. Trying again {i + 1}...\n")
+                print(f"\nAn error occurred while executing the script.\n")
             else:
                 print("\nQuery Execution Result (After Fix):\n", execution_result)
         else:
-            print(f"\nThe model couldn't generate a valid fix. Trying again {i + 1}...\n")
+            print(f"\nThe model couldn't generate a valid fix.\n")
 
     print("\nUnable to resolve the issue after 3 attempts. Moving on to the next request...")
         

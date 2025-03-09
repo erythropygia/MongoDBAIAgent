@@ -4,7 +4,7 @@ import sys
 import os
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-MODEL_PATH = "model/unsloth.Q4_K_M.gguf"
+MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
 LLM = None
 
 with open("prompts.yaml", "r", encoding="utf-8") as file:
@@ -21,7 +21,7 @@ def wake_up_qwen():
 
 def generate_local(prompt, chat_history=None):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
-    if(MODEL_PATH.__contains__("unsloth")):
+    if "r1" in MODEL_PATH:
         system_message = prompts["system_message_r1"]
     else:
         system_message = prompts["system_message"]
@@ -35,9 +35,12 @@ def generate_local(prompt, chat_history=None):
             context += message + "\n"
     context += formatted_user_message + "\n<|im_start|>assistant\n"
 
+    priny(context)
+
     stream_text = ""
     stream = LLM(context, 
-             max_tokens=4096, 
+             max_tokens=4096,
+             repeat_penalty=1.05, 
              temperature=0.7,                
              top_k=40,
              top_p=0.95,

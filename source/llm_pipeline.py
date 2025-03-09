@@ -71,30 +71,34 @@ def extract_and_update_mongodb_connection_string(text, connection_string):
             python_code = text[start_index + len(start_marker):end_index].strip()
             updated_code = python_code.replace('("mongodb://localhost:27017/")',
                                                 f'("{connection_string}")')
-            return updated_code
+            return updated_code, True
 
-    return ""
+    return text, False
 
 def execute_generated_code(code, connection_string):
     loading = LoadingAnimation("Running script")
     loading.start()
 
-    code = extract_and_update_mongodb_connection_string(code, connection_string)
+    code, status= extract_and_update_mongodb_connection_string(code, connection_string)
 
-    with open(GENERATED_SCRIPT_PATH, "w", encoding="utf-8") as f:
-        f.write(code)
+    if status == False:
+        loading.stop()
+        return code
+    else:
+        with open(GENERATED_SCRIPT_PATH, "w", encoding="utf-8") as f:
+            f.write(code)
 
-    try:
-        script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
-        python_cmd = "python" if sys.platform.startswith("win") else "python3"
-        result = subprocess.run([python_cmd, GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=60)
-        loading.stop()
-        return result.stdout.strip()
-    
-    except subprocess.TimeoutExpired:
-        loading.stop()
-        return "Query execution timed out!"
-    
-    except Exception as e:
-        loading.stop()
-        return f"Execution error: {str(e)}"
+        try:
+            script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
+            python_cmd = "python" if sys.platform.startswith("win") else "python3"
+            result = subprocess.run([python_cmd, GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=60)
+            loading.stop()
+            return result.stdout.strip()
+        
+        except subprocess.TimeoutExpired:
+            loading.stop()
+            return "Query execution timed out!"
+        
+        except Exception as e:
+            loading.stop()
+            return f"Execution error: {str(e)}"

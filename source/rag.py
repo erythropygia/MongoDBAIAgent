@@ -3,7 +3,6 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from source.llm_pipeline import generate_example_queries
-from source.text_class import LoadingAnimation
 import pandas as pd
 
 import warnings
@@ -22,15 +21,12 @@ def load_schema_into_faiss(method):
     if os.path.exists(FAISS_INDEX):
         print("\nFAISS index already exists. This process is skipped")
         global FAISS_DB 
-        loading = LoadingAnimation("Loading FAISS schema")
-        loading.start()
+        print("Loading FAISS schema")
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
         FAISS_DB = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
-        loading.stop()
         return
     
-    loading = LoadingAnimation("Generating FAISS schema")
-    loading.start()
+    print("Generating FAISS schema")
 
     with open(SCHEMA_FILE, "r", encoding="utf-8") as f:
         schema_data = json.load(f)
@@ -41,9 +37,7 @@ def load_schema_into_faiss(method):
     docs = []
     metadata = []
     
-    loading.stop()
-    loading = LoadingAnimation("Generating example queries for FAISS schema")
-    loading.start()
+    print("Generating example queries for FAISS schema")
 
     for db_name, collections in schema_data.items():
         for collection_name, structure in collections.items():
@@ -54,10 +48,8 @@ def load_schema_into_faiss(method):
     split_texts = []
     split_metadata = []
     
-    loading.stop()
     print("Loading schema into FAISS...")
-    loading = LoadingAnimation("Indexing Schema")
-    loading.start()
+    print("Indexing Schema")
 
     for i, doc in enumerate(docs):
         split_parts = text_splitter.split_text(doc)
@@ -67,7 +59,6 @@ def load_schema_into_faiss(method):
     faiss_db = FAISS.from_texts(split_texts, embeddings, metadatas=split_metadata)
     faiss_db.save_local(FAISS_INDEX)
 
-    loading.stop()
     print("Schema successfully loaded into FAISS.\n")
 
 
@@ -75,7 +66,7 @@ def get_relevant_schema(user_query, k=5):
     #K bir DB'deki maksimum collection sayısı olabilir
     """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
     print("\nGetting relevant schema for your query...")
-    loading = LoadingAnimation("Searching Schema")
+    print("\nSearching Schema")
 
     docs = FAISS_DB.similarity_search_with_score(user_query, k=k)
 
@@ -100,7 +91,6 @@ def get_relevant_schema(user_query, k=5):
 
         schema_info_list.append(schema_info)
             
-    loading.stop()
     return schema_info_list
 
 def save_query_to_excel(db_names, collection_names, query):

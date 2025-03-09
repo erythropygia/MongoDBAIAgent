@@ -53,8 +53,7 @@ generate_example_queries_qwen: |
   10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
 
 generate_mongo_query_qwen: |
-
-  Her şeyden önce {user_query} şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** diyerek cevap ver ve **işlev için bir python kodu yazmadan.
+  Kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** diyerek cevap ver ve python kodu yazma.
 
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
@@ -62,28 +61,10 @@ generate_mongo_query_qwen: |
   Kullanıcının şu sorgusunu gerçekleştiren bir Python kodu yaz:
   {user_query}
 
-  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz, örnek kullanım önerme. 
-  Kodda verilerdeki `ObjectId`'leri gösterme. Kodda `try-catch` blokları kullanarak aşağıdaki yapıyı uygula:
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. 
+  Kodda verilerdeki `ObjectId`'leri ve şifre gibi özel alanları **gösterme**. 
+  Kodda `try-catch` blokları kullanarak aşağıdaki yapıyı uygula:
   `client = pymongo.MongoClient("mongodb://localhost:27017/")`
-  
-  Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **Exception** ekrana yazdırılacak
-
-
-failed_response_repair_qwen: |
-  Aşağıdaki MongoDB şema(lar)ına dayanarak:
-  {schema}
-
-  Ürettiğin kodda {script} 
-  Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmemi istemiştim:
-  Bana sonuç olarak bunu dönen bir kod yazdın: {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
-
-  Lütfen bu kodu düzenle ve düzenlerken **sadece Python kodunu** döndür, örnek kullanım önerme. Kodda `try-catch` bloklarıyla birlikte aşağıdaki yapıyı uygula:
-  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
-  
-  - Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak.
-  - Kod başarıyla çalıştığında mutlaka konsola yazı yazacak.
-  - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir python kodu oluşturarak cevap ver.
-
 
 ######################
 #########GEMINI##########

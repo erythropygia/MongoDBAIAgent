@@ -2,7 +2,6 @@ import os
 import json
 from pymongo import MongoClient
 import certifi
-from source.text_class import LoadingAnimation
 
 
 def get_field_type(value):
@@ -44,8 +43,7 @@ def analyze_document_structure(document):
 
 def extract_mongo_schema(connection_string, schema_file="mongo_schema.json", schema_path="./mongo_schema/"):
     """Tüm veritabanlarını ve koleksiyonları analiz eder ve şemayı JSON olarak kaydeder."""
-    loading = LoadingAnimation("Extracting Schema")
-    loading.start()
+    print("Extracting Schema")
 
     if os.path.exists(schema_file):
         print(f"Schema already exists: {schema_file}")
@@ -70,5 +68,4 @@ def extract_mongo_schema(connection_string, schema_file="mongo_schema.json", sch
     with open(schema_path + schema_file, "w", encoding="utf-8") as f:
         json.dump(schema_info, f, indent=4, ensure_ascii=False)
 
-    loading.stop()
     print(f"Schema saved as {schema_file}")

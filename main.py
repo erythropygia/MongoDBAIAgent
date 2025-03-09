@@ -66,7 +66,7 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
             query_type = 3
             
         new_script = select_generate_method(
-            query_type, user_query=query, script=script, execution_query=execution_result, schema=schema_text, error_feedbacks = retry_reason
+            query_type, user_query=query, script=script, execution_query=execution_result, schema=schema_text, error_feedback = retry_reason, error_feedbacks=error_feedback_history
         )
         
         if new_script:

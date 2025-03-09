@@ -31,7 +31,8 @@ def generate_local(prompt):
         system_message = prompts["system_message"]
 
     if len(chat_history) >= 9:
-        chat_history = []
+        chat_history.clear()
+
     if len(chat_history) == 0:
         chat_history.append(f"<|im_start|>system\n{system_message}<|im_end|>")
 
@@ -41,7 +42,7 @@ def generate_local(prompt):
     context = "\n".join(chat_history) + "\n<|im_start|>assistant\n"
 
     stream = LLM(context, 
-                 max_tokens=4096,
+                 max_tokens=1024,
                  repeat_penalty=1.05, 
                  temperature=0.7,                
                  top_k=40,

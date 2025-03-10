@@ -60,9 +60,10 @@ def refine_query_if_needed(db_name, collection_name, query, script, execution_re
         
         print("\nRetrying with the corrected script...\n")
 
-        if(query_type == 0):
+        first_attempt = True if i == 0 else False
+        if(query_type == 0 and first_attempt):
             query_type = 2
-        else:
+        elif(query_type == 1 and first_attempt):
             query_type = 3
             
         new_script = select_generate_method(

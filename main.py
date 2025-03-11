@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-from source.generate_mongo_schema import extract_mongo_schema
+from source.generate_schemas import extract_schemas
 from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from source.llm_pipeline import select_generate_method, execute_generated_code
 from source.process.qwen_process import wake_up_qwen
@@ -19,7 +19,7 @@ for folder in folders_to_create:
 def initialize_schema(connection_string, schema_file="./mongo_schema/mongo_schema.json"):
     if not os.path.exists(schema_file):
         print("\nDatabase schema file not found. Generating schema...")
-        extract_mongo_schema(connection_string)
+        extract_schemas(connection_string)
         print("Schema extraction completed.\n")
     else:
         print("\nDatabase schema file found. Loading schema...\n")
@@ -100,7 +100,7 @@ def main():
         wake_up_qwen()
 
     initialize_schema(args.connection_string)
-    load_schema_into_faiss(args.query_type)
+    load_schema_into_faiss()
 
     while True:
         user_query = input("\nEnter your query (type 'exit' to quit): ").strip()

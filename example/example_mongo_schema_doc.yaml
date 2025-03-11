@@ -1,0 +1,112 @@
+#---
+#This file contains the schema of the MongoDB collections.
+#---
+
+
+1: |
+  DBName: "Emotion4U_EvaluationDB"
+  Collection: "AdvertisementDataAnalyses"
+  Description: "Bu koleksiyon, kullanıcıların reklam verisi analizlerini içeren kayıtları barındırır. Kullanıcılar, belirli reklam kampanyalarına ait performans verilerini analiz edebilir, etkileşim oranlarını inceleyebilir ve hedef kitle analizleri yapabilir. Reklam verisi analizi, pazarlama stratejilerinin geliştirilmesine ve kampanya optimizasyonuna katkı sağlar. Analiz sonuçlarının başarılı bir şekilde iletilip iletilmediği ve tamamlanma durumu gibi metrikler de burada takip edilir."
+  Enums: {}
+  EnumsDescription: {}
+2: |
+  DBName: "Emotion4U_EvaluationDB"
+  Collection: "DataAnalyses"
+  Description: "Bu koleksiyon, kullanıcıların metin analizlerine dair kayıtlarını içerir. Kullanıcılar, belirli metinleri duygu analizi, konu tespiti, anlamsal analiz gibi yöntemlerle değerlendirerek içgörüler elde edebilirler. Yapay zeka destekli analizler sayesinde metnin olumlu veya olumsuz olduğu, hangi duygular içerdiği, saldırgan veya ürünle ilgili olup olmadığı gibi bilgiler detaylı şekilde ölçümlenmektedir. DistilBERT ve büyük dil modelleri (LLM) tarafından üretilen analiz sonuçları, yüzdelik bazda detaylandırılarak saklanır. İşlem başarısı ve tamamlanma durumları da kayıt altına alınır."
+  Enums: {}
+  EnumsDescription: {}
+3: |
+  DBName: "Emotion4U_EvaluationDB"
+  Collection: "Subscriptions"
+  Description: "Bu koleksiyon, kullanıcıların abonelik planlarını ve kullanım kotalarını içerir. Kullanıcıların sahip olduğu abonelik türü (Free, Premium, Custom) ve kullanım durumları buraya kaydedilir. Kullanıcının mevcut paketine göre sahip olduğu analiz kotaları (metin analizi, CV analizi, reklam verisi analizi gibi) detaylı olarak takip edilir. Kota kullanımı ve kalan haklar sistem tarafından yönetilir."
+  Enums:
+    Package:
+      - "Free"
+      - "Premium"
+      - "Custom"
+  EnumsDescription:
+    Package: "Kullanıcının sahip olduğu abonelik türü. Free ücretsiz planı, Premium daha fazla analiz hakkı sunan bir paketi ve Custom kullanıcıya özel belirlenen bir paketi ifade eder."
+4: |
+  DBName: "Emotion4U_EvaluationDB"
+  Collection: "CVAnalyses"
+  Description: "Bu koleksiyon, kullanıcıların CV (özgeçmiş) analizlerine ait sonuçlarını içerir. Kullanıcılar, CV’lerini sisteme yükleyerek belirli iş ilanlarıyla ne kadar uyumlu olduğunu değerlendirebilir. Yapay zeka destekli analizler, CV’de eksik olan veya güçlendirilmesi gereken bölümleri tespit ederek kullanıcılara öneriler sunar. Analiz sonuçlarının başarılı şekilde gönderilip gönderilmediği ve tamamlanma durumu kayıt altına alınır."
+  Enums: {}
+  EnumsDescription: {}
+5: |
+  DBName: "Emotion4U_EvaluationDB"
+  Collection: "CVComparisons"
+  Description: "Bu koleksiyon, kullanıcıların birden fazla CV’yi karşılaştırarak yaptığı analizleri içerir. İşe alım süreçlerinde, farklı adayların CV’leri belirli kriterler doğrultusunda kıyaslanarak en uygun adayın belirlenmesine yardımcı olur. Kullanıcılar ayrıca kendi CV'lerinin farklı versiyonlarını karşılaştırarak en iyi sonucu elde edebilir. Karşılaştırma işleminin tamamlanma durumu ve başarıyla iletilme bilgileri de burada saklanır."
+  Enums: {}
+  EnumsDescription: {}
+6: |
+  DBName: "Emotion4U_NotificationDB"
+  Collection: "NotificationRequests"
+  Description: "Bu koleksiyon, kullanıcılara gönderilen bildirim isteklerini içerir. Kullanıcının kayıt, şifre sıfırlama gibi işlemleri sırasında tetiklenen bildirimlerin ne zaman, hangi iletişim kanalıyla (e-posta, SMS vb.) ve hangi olay sonucunda gönderildiği bilgisi burada tutulur. Bildirimlerin durumu (başarılı, başarısız, beklemede) da sistem tarafından izlenir."
+  Enums:
+    EventType:
+      - "ForgotPassword"
+      - "Register"
+    NotificationType:
+      - "Email"
+      - "Sms"
+  EnumsDescription:
+    EventType: "Bildirimlerin hangi olay sonucunda tetiklendiğini gösterir. Örneğin, ForgotPassword şifre sıfırlama işlemini, Register ise yeni kullanıcı kaydını ifade eder."
+    NotificationType: "Bildirimlerin hangi iletişim kanalıyla gönderildiğini belirtir. Email e-posta ile, Sms ise kısa mesaj ile gönderildiğini gösterir."
+7: |
+  DBName: "Emotion4U_NotificationDB"
+  Collection: "NotificationTemplates"
+  Description: "Bu koleksiyon, kullanıcılara gönderilen bildirimlerin şablonlarını içerir. Bildirimlerin içeriği, konusu ve formatı burada belirlenir. Şablonlar, bildirim türüne (e-posta, SMS) ve etkinlik türüne (şifre sıfırlama, kayıt vb.) göre kategorize edilir. Sistem, gerektiğinde bu şablonları kullanarak otomatik bildirimler oluşturur."
+  Enums:
+    EventType:
+      - "ForgotPassword"
+      - "Register"
+    NotificationType:
+      - "Email"
+      - "Sms"
+  EnumsDescription:
+    EventType: "Bildirim şablonlarının hangi olay için kullanılacağını belirtir. ForgotPassword, şifre sıfırlama işlemi için kullanılan şablonları ifade eder."
+    NotificationType: "Şablonun hangi iletişim kanalında kullanılacağını belirler. Email şablonları e-posta bildirimleri için, Sms şablonları ise kısa mesajlar için kullanılır."
+8: |
+  DBName: "Emotion4U_PaymentDB"
+  Collection: "PaymentData"
+  Description: "Bu koleksiyon, kullanıcıların satın aldığı abonelik paketlerine ilişkin ödeme bilgilerini içerir. Kullanıcıların ödeme geçmişi, ödeme durumu (başarılı, beklemede, başarısız), fatura bilgileri ve yapılan ödeme miktarı burada kayıt altına alınır. Kullanıcı hangi paketi satın aldığına dair bilgiler ve sağlanan indirim oranları da burada saklanır."
+  Enums:
+    Package:
+      - "Free"
+      - "Premium"
+      - "Custom"
+    PaymentStatus:
+      - "Success"
+      - "Waiting"
+      - "Failed"
+  EnumsDescription:
+    Package: "Kullanıcının satın aldığı abonelik türünü gösterir. Free ücretsiz paketi, Premium gelişmiş özellikler sunan bir paketi, Custom ise kullanıcıya özel belirlenen bir paketi ifade eder."
+    PaymentStatus: "Ödemenin durumunu belirtir. Success başarılı ödemeyi, Waiting bekleyen işlemi, Failed başarısız ödemeyi ifade eder."
+9: |
+  DBName: "Emotion4U_PaymentDB"
+  Collection: "PaymentPackages"
+  Description: "Bu koleksiyon, sistemde mevcut olan abonelik paketlerini içerir. Kullanıcılara sunulan paketlerin fiyatları, sunduğu analiz kotaları ve uygulanabilecek indirim oranları burada saklanır. Kullanıcılar, bu paketler arasından seçim yaparak ödeme işlemlerini gerçekleştirebilir."
+  Enums:
+    Package:
+      - "Free"
+      - "Premium"
+      - "Custom"
+  EnumsDescription:
+    Package: "Sistem tarafından sunulan abonelik türlerini belirtir. Free ücretsiz paketi, Premium daha fazla özellik sunan bir paketi ve Custom kullanıcıya özel bir paketi ifade eder."
+10: |
+  DBName: "Emotion4U_UserDB"
+  Collection: "UserVerificationTokens"
+  Description: "Bu koleksiyon, kullanıcıların hesap doğrulama süreçlerinde kullanılan tokenları içerir. Kullanıcıların e-posta doğrulama veya şifre sıfırlama gibi işlemlerinde kullanılan tek kullanımlık kodlar burada saklanır. Tokenların geçerlilik süresi ve kullanılıp kullanılmadığı bilgisi de takip edilir."
+  Enums: {}
+  EnumsDescription: {}
+11: |
+  DBName: "Emotion4U_UserDB"
+  Collection: "User"
+  Description: "Bu koleksiyon, sistemdeki kullanıcıların hesap bilgilerini içerir. Kullanıcıların isim, e-posta, telefon numarası gibi temel bilgileri yanı sıra, rollerine (Admin, Callback, User) ve hesap doğrulama durumlarına dair bilgiler burada saklanır."
+  Enums:
+    Role:
+      - "Admin"
+      - "Callback"
+      - "User"
+  EnumsDescription:
+    Role: "Kullanıcının sistemdeki yetki düzeyini belirtir. Admin yöneticileri, Callback sistemin dış servisler için oluşturduğu özel hesapları, User ise standart kullanıcıları ifade eder."

@@ -41,21 +41,27 @@ def analyze_document_structure(document):
 
     return field_types
 
-def extract_mongo_schema(connection_string, schema_file="mongo_schema.json", schema_path="./mongo_schema/"):
-    """Tüm veritabanlarını ve koleksiyonları analiz eder ve şemayı JSON olarak kaydeder."""
+def extract_schemas(connection_string, schema_file="mongo_schema.json", schema_doc_file="mongo_schema_doc.yaml", schema_path="./mongo_schema/"):
+    """Tüm veritabanlarını ve koleksiyonları analiz eder, şemayı JSON olarak ve YAML dokümanını kaydeder."""
     print("Extracting Schema")
 
-    if os.path.exists(schema_file):
-        print(f"Schema already exists: {schema_file}")
+    os.makedirs(schema_path, exist_ok=True)  # Klasör yoksa oluştur
+
+    if os.path.exists(schema_path + schema_file):
+        print(f"JSON Schema already exists: {schema_path + schema_file}")
+    if os.path.exists(schema_path + schema_doc_file):
+        print(f"YAML Document Schema already exists: {schema_path + schema_doc_file}")
         return
 
     client = MongoClient(connection_string, tlsCAFile=certifi.where())
     schema_info = {}
+    yaml_doc_content = ""
+    entry_counter = 1
 
     for db_name in client.list_database_names():
-        if db_name in ["admin", "config", "local"]: 
+        if db_name in ["admin", "config", "local"]:
             continue
-        
+
         db = client[db_name]
         schema_info[db_name] = {}
 
@@ -64,8 +70,24 @@ def extract_mongo_schema(connection_string, schema_file="mongo_schema.json", sch
             sample_data = collection.find_one()
             if sample_data:
                 schema_info[db_name][collection_name] = analyze_document_structure(sample_data)
+                yaml_doc_content += f"""{entry_counter}: |
+  DBName: "{db_name}"
+  Collection: "{collection_name}"
+  Description: "{{}}"
+  Enums: {{}}
+  EnumsDescription: {{}}
+
+"""
+                entry_counter += 1
 
     with open(schema_path + schema_file, "w", encoding="utf-8") as f:
         json.dump(schema_info, f, indent=4, ensure_ascii=False)
+    print(f"JSON Schema saved as {schema_file}")
 
-    print(f"Schema saved as {schema_file}")
+    with open(schema_path + schema_doc_file, "w", encoding="utf-8") as f:
+        f.write(yaml_doc_content)
+    print(f"YAML Document Schema saved as {schema_doc_file}")
+
+    print("*************WARNING*************")
+    print("Please fill in the YAML document with descriptions and enums.")
+    print("*********************************")

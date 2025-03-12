@@ -73,7 +73,7 @@ def extract_schemas(connection_string, schema_file="mongo_schema.json", schema_d
                 yaml_doc_content += f"""{entry_counter}: |
   DBName: "{db_name}"
   Collection: "{collection_name}"
-  Description: "{{}}"
+  Description: "Default Description {db_name} - {collection_name}"
   Enums: {{}}
   EnumsDescription: {{}}
 
@@ -89,5 +89,6 @@ def extract_schemas(connection_string, schema_file="mongo_schema.json", schema_d
     print(f"YAML Document Schema saved as {schema_doc_file}")
 
     print("*************WARNING*************")
-    print("Please fill in the YAML document with descriptions and enums.")
+    print("Please update the YAML document with descriptions and enums (e.g., see example/mongo_schema_doc.yaml), then delete the faiss_mongo_schema folder and run the script again")
+    print("Default parameters using")
     print("*********************************")

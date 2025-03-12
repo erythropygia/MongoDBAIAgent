@@ -16,8 +16,8 @@ for folder in folders_to_create:
         os.makedirs(folder_path)
 
 
-def initialize_schema(connection_string, schema_file="./mongo_schema/mongo_schema.json"):
-    if not os.path.exists(schema_file):
+def initialize_schema(connection_string, schema_file="./mongo_schema/mongo_schema.json", yaml_schema_file="./mongo_schema/mongo_schema_doc.yaml"):
+    if not os.path.exists(schema_file) or not os.path.exists(yaml_schema_file):
         print("\nDatabase schema file not found. Generating schema...")
         extract_schemas(connection_string)
         print("Schema extraction completed.\n")

@@ -70,18 +70,20 @@ def load_schema_into_faiss():
                 doc_text += f", Enums: {enums_str}"
             if enums_description_str:
                 doc_text += f", EnumsDescription: {enums_description_str}"
-                docs.append(doc_text)
-                meta_entry = {
-                    "DBName": db_name,
-                    "Collection": collection_name,
-                    "Description": description,
-                }
-                if enums_str:
-                    meta_entry["Enums"] = enums_str
-                if enums_description_str:
-                    meta_entry["EnumsDescription"] = enums_description_str
 
-                metadata.append(meta_entry)
+            docs.append(doc_text)
+
+            meta_entry = {
+                "DBName": db_name,
+                "Collection": collection_name,
+                "Description": description,
+            }
+            if enums_str:
+                meta_entry["Enums"] = enums_str
+            if enums_description_str:
+                meta_entry["EnumsDescription"] = enums_description_str
+
+            metadata.append(meta_entry)
 
     split_texts = []
     split_metadata = []
@@ -113,7 +115,7 @@ def get_relevant_schema(user_query, k=5, similarity_threshold=0.5):
     schema_info_list = []
 
     for doc, score in docs:
-        similarity_score = 1 / (1 + score)  # Skoru normalize et (örn: L2 mesafesini benzerlik yüzdesine çevirmek)
+        similarity_score = 1 / (1 + score) #Normalize the score
         
         if similarity_score < similarity_threshold:
             continue  

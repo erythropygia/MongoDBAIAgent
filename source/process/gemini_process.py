@@ -16,7 +16,21 @@ chat = client.chats.create(model="gemini-1.5-flash",
                                config=types.GenerateContentConfig(
                                system_instruction=system_message))
 
+def start_new_chat():
+    global chat
+    chat = client.chats.create(
+        model="gemini-1.5-flash",
+        config=types.GenerateContentConfig(system_instruction=system_message)
+    )
 
-def generate_gemini(prompt):
+def generate_gemini(prompt, new_chat=False):
+    global chat
+    if new_chat or chat is None:
+        start_new_chat()
+    
     response = chat.send_message(prompt.strip())
+
+    print("Agent: ", end="", flush=True)
+    print(response.text)
+
     return response.text

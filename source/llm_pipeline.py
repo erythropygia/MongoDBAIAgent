@@ -54,7 +54,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
                 return result
             else:
                 print(f"Code execution failed. Trying again {try_count}")
-                response = generate_gemini(CONSERVATIONS)
+                response = generate_gemini(CONSERVATIONS, new_chat=True)
                 result, is_successful = CodeExecutor.execute_generated_code(response)
                 CONSERVATIONS.append({{'role': "assistant", "content": response}})
 

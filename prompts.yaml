@@ -26,31 +26,6 @@ system_message: |
   Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** diyerek cevap ver.
   Bu sorgular sadece veri okuma işlemlerini yapacak, veri silme, güncelleme ya da ekleme işlemleri **kesinlikle yapılmayacak**.
 
-system_example_queries_message: |
-  Sen sadece Türkçe konuşan ve düşünen, MongoDB'de uzman bir yapay zeka modelisin. Kullanıcının istediği liste çıktısını üret ve sadece JSON listesi verisini döndür.
-
-generate_example_queries_qwen: |
-  Aşağıdaki MongoDB Database {db_name} ve Collection {collection} isimlerine dikkat ederek ve aşağıdaki şemaya uyarak:
-  {structure}
-
-  Bana Türkçe metinsel olarak örnek güzel üret ve json formatında ver:
-
-  Örnek sorgu: 
-  abc@example.com mailli kişi en son ne zaman analiz yapmıştır?
-
-  Cevabın da aşağıdaki gibi bir string json listesi olmalı 
-  Örneğin: 
-  [
-      "ÖRNEK QUERY (METİN OLARAK)",
-      "ÖRNEK QUERY2 (METİN OLARAK)",
-      "ÖRNEK QUERY3 (METİN OLARAK)",
-      .
-      .
-      .
-  ]
-
-  10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
-
 generate_mongo_query_qwen: |
   Kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** diyerek cevap ver ve python kodu yazma.
 
@@ -69,28 +44,6 @@ generate_mongo_query_qwen: |
 #########GEMINI##########
 ######################
 
-generate_example_queries_gemini: |
-  Aşağıdaki MongoDB Database {db_name} ve Collection {collection} isimlerine dikkat ederek ve aşağıdaki şemaya uyarak:
-  {structure}
-
-  Bana Türkçe metinsel olarak örnek güzel üret ve json formatında ver:
-
-  Örnek sorgu: 
-  abc@example.com mailli kişi en son ne zaman analiz yapmıştır?
-
-  Cevabın da aşağıdaki gibi bir string json listesi olmalı 
-  Örneğin: 
-  [
-      "ÖRNEK QUERY (METİN OLARAK)",
-      "ÖRNEK QUERY2 (METİN OLARAK)",
-      "ÖRNEK QUERY3 (METİN OLARAK)",
-      .
-      .
-      .
-  ]
-
-  10 adet örnek üret ve sadece JSON listesi verisini senden istediğim gibi döndür.
-
 generate_mongo_query_gemini: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
@@ -107,23 +60,4 @@ generate_mongo_query_gemini: |
   - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir script oluştur.
   
   Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
-
-
-failed_response_repair_gemini: |
-  Aşağıdaki MongoDB şema(lar)ına dayanarak:
-  {schema}
-
-  Ürettiğin kodda {script} 
-  Aşağıdaki hatayı alıyorum ve senden {user_query} işlemini gerçekleştirmemi istemiştim:
-  Bana sonuç olarak bunu dönen bir kod yazdın: {execution_query} ancak yazdığın kod {error_feedbacks} işlem(ler)ini gerçekleştirmiyor.
-
-  Lütfen bu kodu düzenle ve düzenlerken **sadece Python kodunu** döndür, örnek kullanım önerme. Kodda `try-catch` bloklarıyla birlikte aşağıdaki yapıyı uygula:
-  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
-  
-  **Önemli:**
-  - Kod yalnızca **veri okuma (query)** işlemlerini yapacak, **veri silme, güncelleme veya ekleme** işlemleri **kesinlikle yapılmayacak**.
-  - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir script oluştur.
-  
-  - Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak.
-  - Kod başarıyla çalıştığında mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
 

@@ -183,8 +183,10 @@ def get_mongo_schema(db_name, collection_name):
             return db_schema[collection_name]
     return None
 
-def save_query_to_excel(db_names, collection_names, query):
-    db_str = ", ".join(db_names)
+
+def save_query_to_excel(schema_data, query):
+    """
+    db_str = ", ".join(schema_data)
     collection_str = ", ".join(collection_names)
     
     new_data = pd.DataFrame([[db_str, collection_str, query]], columns=["DB", "Collections", "Query"])
@@ -200,4 +202,5 @@ def save_query_to_excel(db_names, collection_names, query):
             updated_data = pd.concat([existing_data, new_data], ignore_index=True)
             updated_data.to_excel(EXCEL_FILE, index=False)
 
-        print(f"Data save success. Thank you!")
+        print(f"Data save success. Thank you!")"
+    """

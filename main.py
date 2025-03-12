@@ -5,6 +5,7 @@ from source.generate_schemas import extract_schemas
 from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from source.llm_pipeline import select_generate_method, execute_generated_code
 from source.process.qwen_process import wake_up_qwen
+from source.text_class import print_relevant_schemas
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 folders_to_create = ['run_script', 'model', 'mongo_schema']
@@ -31,7 +32,7 @@ def process_query(query, connection_string, query_type):
         print("No suitable schema found. Please try again.")
         return
 
-    print(f"Relevant Schema(s) Found: `{schema_data[0]['DBName']}`, `{schema_data[0]['Collection']}`")
+    print_relevant_schemas(schema_data)
 
     script = select_generate_method(query_type, query, schema_data)
     if not script:

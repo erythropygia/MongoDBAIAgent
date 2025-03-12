@@ -28,3 +28,16 @@ class LoadingAnimation:
             self.thread.join()
         sys.stdout.write("\r" + " " * 50 + "\r")  # Temizle
         sys.stdout.flush()
+
+
+def print_relevant_schemas(schema_data):
+    print(f"Relevant Schema(s) Found: \n")
+    for index, schema in enumerate(schema_data):
+        print(f"--------------------\n{index + 1}.\n--------------------")
+        print(f"DBName: {schema['DBName']}")
+        print(f"Collection: {schema['Collection']}")
+        print(f"Description: {schema['Description']}")
+        print(f"Enums: {schema['Enums']}")
+        print(f"Enums Description: {schema['EnumsDescription']}")
+        print(f"Schema: {schema['Schema']}")
+        print(f"Similarity Score: {schema['SimilarityScore']}\n")

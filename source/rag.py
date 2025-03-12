@@ -1,4 +1,4 @@
-import json, os, yaml
+import json, os, yaml, re, sys
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -13,6 +13,7 @@ SCHEMA_DOC_FILE = "mongo_schema/mongo_schema_doc.yaml"
 
 FAISS_INDEX = "faiss_mongo_schema"
 FAISS_DB = None
+MAX_COLLECTION_COUNTS = 0
 
 
 EXCEL_FILE = "faiss_mongo_schema/queries_for_rag.xlsx"
@@ -29,7 +30,6 @@ def load_schema_into_faiss():
         return
 
     print("Generating FAISS schema")
-
     print(f"Checking YAML File")
     if not os.path.exists(SCHEMA_DOC_FILE):
         print(f"ERROR: YAML file not found: {SCHEMA_DOC_FILE}. Please ensure you have created the file and it is in the correct path.")
@@ -100,14 +100,23 @@ def load_schema_into_faiss():
     faiss_db.save_local(FAISS_INDEX)
 
     print("Schema successfully loaded into FAISS.\n")
+    FAISS_DB = FAISS.load_local(FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
 
-def get_relevant_schema(user_query, k=5, similarity_threshold=0.5):
+
+def get_relevant_schema(user_query, similarity_threshold=0.5):
     """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
+    global MAX_COLLECTION_COUNTS
     print("\nGetting relevant schema for your query...")
     print("\nSearching Schema")
 
-    docs = FAISS_DB.similarity_search_with_score(user_query, k=k)
+    if(MAX_COLLECTION_COUNTS == 0):
+        MAX_COLLECTION_COUNTS = get_max_collection_counts()
+        if(MAX_COLLECTION_COUNTS == 0):
+            print("ERROR: Maximum collection count not found. Please check the YAML schema file.")
+            sys.exit(1)
+        
+    docs = FAISS_DB.similarity_search_with_score(user_query, k=MAX_COLLECTION_COUNTS)
 
     if not docs:
         return []
@@ -115,23 +124,64 @@ def get_relevant_schema(user_query, k=5, similarity_threshold=0.5):
     schema_info_list = []
 
     for doc, score in docs:
-        similarity_score = 1 / (1 + score) #Normalize the score
+        similarity_score = 1 / (1 + score)  # Normalize the score
         
         if similarity_score < similarity_threshold:
             continue  
 
         schema_info = {
-            "DBName": doc.metadata["DBName"],
-            "Collection": doc.metadata["Collection"],
-            "Description": doc.metadata["Description"],
-            "Enums": doc.metadata["Enums"],
-            "EnumsDescription": doc.metadata["EnumsDescription"],
+            "DBName": doc.metadata.get("DBName", ""), 
+            "Collection": doc.metadata.get("Collection", ""),
+            "Description": doc.metadata.get("Description", ""),
+            "Enums": doc.metadata.get("Enums", "None"), 
+            "EnumsDescription": doc.metadata.get("EnumsDescription", None),
+            "Schema": get_mongo_schema(doc.metadata.get("DBName", ""), doc.metadata.get("Collection", "")),
             "SimilarityScore": similarity_score 
         }
 
         schema_info_list.append(schema_info)
 
     return schema_info_list
+
+def get_max_collection_counts():
+    try:
+        with open(SCHEMA_DOC_FILE, 'r', encoding='utf-8') as file:
+            content = file.read()
+
+        matches = re.findall(r'^(\d+):', content, re.MULTILINE)
+
+        if matches:
+            max_count = max(map(int, matches))
+            return max_count
+        else:
+            return 0 
+
+    except FileNotFoundError:
+        print(f"ERROR: '{SCHEMA_DOC_FILE}' not found.")
+        return 0
+    except Exception as e:
+        print(f"ERROR: An error occurred while reading the YAML file: {e}")
+        return 0
+    
+def get_mongo_schema(db_name, collection_name):
+    try:
+        with open(SCHEMA_FILE, 'r', encoding='utf-8') as file:
+            schema_data = json.load(file)
+    except FileNotFoundError:
+        print(f"ERROR: Schema file '{SCHEMA_FILE}' not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"ERROR: Schema file '{SCHEMA_FILE}' not in a valid JSON format.")
+        return None
+    except Exception as e:
+        print(f"ERROR: An error occurred while reading the schema file: {e}")
+        return None
+
+    if db_name in schema_data:
+        db_schema = schema_data[db_name]
+        if collection_name in db_schema:
+            return db_schema[collection_name]
+    return None
 
 def save_query_to_excel(db_names, collection_names, query):
     db_str = ", ".join(db_names)

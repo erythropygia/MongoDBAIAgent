@@ -95,7 +95,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")
                 CONSERVATIONS.append({'role': "user", "content": result})
-                response = generate_gemini(CONSERVATIONS)
+                response = generate_local(CONSERVATIONS)
                 CONSERVATIONS.append({'role': "assistant", "content": response})
 
                 result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 

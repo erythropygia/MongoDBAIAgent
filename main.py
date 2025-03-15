@@ -4,7 +4,7 @@ import argparse
 from source.generate_schemas import extract_schemas
 from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from source.llm_pipeline import generate
-from source.code_executor import CodeExecutor
+from source.code_executor import save_mongo_cs
 from source.process.qwen_process import wake_up_qwen
 from source.text_class import print_relevant_schemas
 
@@ -36,50 +36,54 @@ def process_query(query, query_type):
     print_relevant_schemas(schema_data)
     response = generate(query_type, query, schema_data, None, True)
     if(response is not None):
+        print("Executing result:\n", response)
 
-        for i in range(3): 
-            confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
-            
-            if confirmation == "y":
-                save_query_to_excel(schema_data, query)
-                return
-            elif confirmation == "exit":
-                sys.exit("\nExiting program. Goodbye!")
-            else:
-                print("Please type y/n or exit.")
-                i-=1
+        for i in range(1,3): 
+            while(True):            
+                confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
+                if confirmation == "y":
+                    save_query_to_excel(schema_data, query)
+                    return
+                elif confirmation == "exit":
+                    sys.exit("\nExiting program. Goodbye!")
+                elif confirmation == "n":
+                    break
+                else:
+                    print("Please type y/n or exit.")
+                    continue
 
             retry_reason = input("\nWhat was incorrect? Please describe the issue: ").strip()
 
-            first_attempt = True if i == 0 else False
-            if(query_type == 0 and first_attempt):
+            if(query_type == 0):
                 query_type = 2
-            elif(query_type == 1 and first_attempt):
+            elif(query_type == 1):
                 query_type = 3
 
-            generate(query_type, query, schema_data, retry_reason)
+            response = generate(query_type, query, schema_data, retry_reason, False)
+            print("Executing result:\n", response)
+
 
 def main():
-    parser = argparse.ArgumentParser(description="MongoDB Query Generator")
-    parser.add_argument("--connection-string", type=str, required=True, help="MongoDB Connection String")
-    parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description="MongoDB Query Generator")
+    #parser.add_argument("--connection-string", type=str, required=True, help="MongoDB Connection String")
+    #parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
+    #args = parser.parse_args()
 
-    CodeExecutor(args.connection_string)
+    save_mongo_cs("mongodb+srv://noreplyemotion4u:45kVomOnb38h3VFU@emotion4u-basecluster.5gbds.mongodb.net/admin?retryWrites=true&loadBalanced=false&replicaSet=atlas-xp4kqi-shard-0&readPreference=primary&srvServiceName=mongodb&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-1")
 
-    if(args.query_type == 0):
+    if(1 == 0):
         print("\nSelected Query Type: Local Model")
         print("\nBuilding the local model...")
         wake_up_qwen()
 
-    initialize_schema(args.connection_string)
+    initialize_schema("mongodb+srv://noreplyemotion4u:45kVomOnb38h3VFU@emotion4u-basecluster.5gbds.mongodb.net/admin?retryWrites=true&loadBalanced=false&replicaSet=atlas-xp4kqi-shard-0&readPreference=primary&srvServiceName=mongodb&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-1")
     load_schema_into_faiss()
 
     while True:
         user_query = input("\nEnter your query (type 'exit' to quit): ").strip()
         if user_query.lower() == "exit":
             sys.exit("\nExiting program. Goodbye!")
-        process_query(user_query, args.connection_string, args.query_type)
+        process_query(user_query, 1)
 
 
 if __name__ == "__main__":

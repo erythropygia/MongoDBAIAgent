@@ -1,10 +1,11 @@
 import subprocess, os, sys
 
 GENERATED_SCRIPT_PATH = "generated_scripts/generated_mongo_query.py"
+CONNECTION_STRING = ""
 
 class CodeExecutor:
-    def __init__(self, connection_string):
-        self.connection_string = connection_string 
+    def __init__(self):
+        self.connection_string = CONNECTION_STRING 
 
     def extract_and_update_mongodb_connection_string(self, text):
         connection_string = self.connection_string
@@ -26,13 +27,13 @@ class CodeExecutor:
             connection_string = self.connection_string
             print("Running script")
 
-            code, status= self.extract_and_update_mongodb_connection_string(code, connection_string)
+            script, status= self.extract_and_update_mongodb_connection_string(code)
 
             if status == False:
                 return "Script execution failed. Reason: Python script was not found in response's ```python ``` structure.", False 
             else:
                 with open(GENERATED_SCRIPT_PATH, "w", encoding="utf-8") as f:
-                    f.write(code)
+                    f.write(script)
 
                 try:
                     script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
@@ -50,3 +51,7 @@ class CodeExecutor:
 
                 except Exception as e:
                     return f"Execution error: {str(e)}", False 
+                
+def save_mongo_cs(connection_string):
+    global CONNECTION_STRING
+    CONNECTION_STRING = connection_string

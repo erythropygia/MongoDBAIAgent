@@ -76,7 +76,7 @@ def main():
         print("\nBuilding the local model...")
         wake_up_qwen()
 
-    initialize_schema("mongodb+srv://noreplyemotion4u:45kVomOnb38h3VFU@emotion4u-basecluster.5gbds.mongodb.net/admin?retryWrites=true&loadBalanced=false&replicaSet=atlas-xp4kqi-shard-0&readPreference=primary&srvServiceName=mongodb&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-1")
+    initialize_schema(args.connection_string)
     load_schema_into_faiss()
 
     while True:

@@ -31,6 +31,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
  
             if is_successful:
                 CONSERVATIONS.append({'role': "assistant", "content": response})
+                print(CONSERVATIONS)
                 return result
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")  
@@ -60,6 +61,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 
 
             if is_successful:
+                print(CONSERVATIONS)
                 return result
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")
@@ -88,6 +90,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             CONSERVATIONS.append({'role': "assistant", "content": response})
 
             if is_successful:
+                print(CONSERVATIONS)
                 return result
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")
@@ -118,6 +121,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             CONSERVATIONS.append({'role': "assistant", "content": response})
 
             if is_successful:
+                print(CONSERVATIONS)
                 return result
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")

@@ -5,26 +5,23 @@ CONNECTION_STRING = ""
 
 class CodeExecutor:
     def __init__(self):
-        self.connection_string = CONNECTION_STRING 
-
+        pass
+ 
     def extract_and_update_mongodb_connection_string(self, text):
-        connection_string = self.connection_string
         start_marker = "```python"
         end_marker = "```"
-
         start_index = text.find(start_marker)
         if start_index != -1:
             end_index = text.find(end_marker, start_index + len(start_marker))
             if end_index != -1:
                 python_code = text[start_index + len(start_marker):end_index].strip()
                 updated_code = python_code.replace('("mongodb://localhost:27017/")',
-                                                    f'("{connection_string}")')
+                                                    f'("{CONNECTION_STRING}")')
                 return updated_code, True
 
         return text, False
 
     def execute_generated_code(self, code):
-            connection_string = self.connection_string
             print("Running script")
 
             script, status= self.extract_and_update_mongodb_connection_string(code)

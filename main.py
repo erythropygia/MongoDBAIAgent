@@ -64,12 +64,12 @@ def process_query(query, query_type):
 
 
 def main():
-    #parser = argparse.ArgumentParser(description="MongoDB Query Generator")
-    #parser.add_argument("--connection-string", type=str, required=True, help="MongoDB Connection String")
-    #parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="MongoDB Query Generator")
+    parser.add_argument("--connection-string", type=str, required=True, help="MongoDB Connection String")
+    parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
+    args = parser.parse_args()
 
-    save_mongo_cs("mongodb+srv://noreplyemotion4u:45kVomOnb38h3VFU@emotion4u-basecluster.5gbds.mongodb.net/admin?retryWrites=true&loadBalanced=false&replicaSet=atlas-xp4kqi-shard-0&readPreference=primary&srvServiceName=mongodb&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-1")
+    save_mongo_cs(args.connection_string)
 
     if(1 == 0):
         print("\nSelected Query Type: Local Model")
@@ -83,7 +83,7 @@ def main():
         user_query = input("\nEnter your query (type 'exit' to quit): ").strip()
         if user_query.lower() == "exit":
             sys.exit("\nExiting program. Goodbye!")
-        process_query(user_query, 1)
+        process_query(user_query, args.query_type)
 
 
 if __name__ == "__main__":

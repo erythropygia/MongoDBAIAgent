@@ -1,12 +1,12 @@
 import subprocess, os, sys
+import time, random, string
 
-GENERATED_SCRIPT_PATH = "generated_scripts/generated_mongo_query.py"
 CONNECTION_STRING = ""
 
 class CodeExecutor:
     def __init__(self):
         pass
- 
+    
     def extract_and_update_mongodb_connection_string(self, text):
         start_marker = "```python"
         end_marker = "```"
@@ -22,33 +22,37 @@ class CodeExecutor:
         return text, False
 
     def execute_generated_code(self, code):
-            print("Running script")
+        print("Running script")
 
-            script, status= self.extract_and_update_mongodb_connection_string(code)
+        script, status = self.extract_and_update_mongodb_connection_string(code)
 
-            if status == False:
-                return "Script execution failed. Reason: Python script was not found in response's ```python ``` structure.", False 
-            else:
-                with open(GENERATED_SCRIPT_PATH, "w", encoding="utf-8") as f:
-                    f.write(script)
+        if status == False:
+            return "Script execution failed. Reason: Python script was not found in response's ```python ``` structure.", False 
+        else:
+            random_str = ''.join(random.choices(string.ascii_lowercase, k=5))
+            unique_file_name = f"generated_scripts/generated_mongo_query_{int(time.time())}_{random_str}.py"
 
-                try:
-                    script_dir = os.path.dirname(os.path.abspath(GENERATED_SCRIPT_PATH))
-                    python_cmd = "python" if sys.platform.startswith("win") else "python3"
-                    result = subprocess.run([python_cmd, GENERATED_SCRIPT_PATH], capture_output=True, text=True, timeout=60)
+            
+            with open(unique_file_name, "w", encoding="utf-8") as f:
+                f.write(script)
 
-                    if result.returncode != 0:
-                        error_message = f"Script execution failed with exit code: {result.returncode}. Error details:\n{result.stderr.strip()}"
-                        return error_message, False 
-                    else:
-                        return result.stdout.strip(), True  
+            try:
+                script_dir = os.path.dirname(os.path.abspath(unique_file_name))
+                python_cmd = "python" if sys.platform.startswith("win") else "python3"
+                result = subprocess.run([python_cmd, unique_file_name], capture_output=True, text=True, timeout=60)
 
-                except subprocess.TimeoutExpired:
-                    return "Query execution timed out!", False  
+                if result.returncode != 0:
+                    error_message = f"Script execution failed with exit code: {result.returncode}. Error details:\n{result.stderr.strip()}"
+                    return error_message, False 
+                else:
+                    return result.stdout.strip(), True  
 
-                except Exception as e:
-                    return f"Execution error: {str(e)}", False 
-                
+            except subprocess.TimeoutExpired:
+                return "Query execution timed out!", False  
+
+            except Exception as e:
+                return f"Execution error: {str(e)}", False 
+
 def save_mongo_cs(connection_string):
     global CONNECTION_STRING
     CONNECTION_STRING = connection_string

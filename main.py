@@ -71,7 +71,7 @@ def main():
 
     save_mongo_cs(args.connection_string)
 
-    if(1 == 0):
+    if(args.query_type == 0):
         print("\nSelected Query Type: Local Model")
         print("\nBuilding the local model...")
         wake_up_qwen()

@@ -1,12 +1,21 @@
 from llama_cpp import Llama
 import yaml, sys, os
+from transformers import AutoTokenizer
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
-LLM = None
-
 with open("prompts.yaml", "r", encoding="utf-8") as file:
     prompts = yaml.safe_load(file)
+
+
+MODEL_PATH = "model/Qwen2.5.1-Coder-7B-Instruct-Q6_K.gguf"
+LLM = None
+SYSTEM_MESSAGE = ""
+TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
+
+if "r1" in MODEL_PATH:
+    SYSTEM_MESSAGE = prompts["system_message_r1"]
+else:
+    SYSTEM_MESSAGE = prompts["system_message"]
 
 
 def wake_up_qwen():
@@ -17,27 +26,14 @@ def wake_up_qwen():
                 n_ctx=max_context_window)
     
 
-chat_history = []
-
-def generate_local(prompt):
+def generate_local(prompts, new_chat=False):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
-    global chat_history
+    global SYSTEM_MESSAGE
 
-    if "r1" in MODEL_PATH:
-        system_message = prompts["system_message_r1"]
-    else:
-        system_message = prompts["system_message"]
+    if new_chat == True:
+        prompts.insert(0, {'role': "system", "content": SYSTEM_MESSAGE})
 
-    if len(chat_history) >= 9:
-        chat_history.clear()
-
-    if len(chat_history) == 0:
-        chat_history.append(f"<|im_start|>system\n{system_message}<|im_end|>")
-
-    formatted_user_message = f"<|im_start|>user\n{prompt}<|im_end|>"
-    chat_history.append(formatted_user_message)
-
-    context = "\n".join(chat_history) + "\n<|im_start|>assistant\n"
+    context = format_chat_template(prompts)
 
     stream = LLM(context, 
                  max_tokens=1024,
@@ -60,8 +56,18 @@ def generate_local(prompt):
     sys.stdout.write("\n")  
     sys.stdout.flush()
     
-    formatted_assistant_message = f"<|im_start|>assistant\n{assistant_message}<|im_end|>"
-    chat_history.append(formatted_assistant_message)
-
     return assistant_message
 
+def format_chat_template(prompts):
+    global TOKENIZER
+    global SYSTEM_MESSAGE
+
+    text = TOKENIZER.apply_chat_template(
+        prompts,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+    return text
+
+    

@@ -7,3 +7,4 @@ decouple
 google-generativeai
 llama-cpp-python
 sentence-transformers
+google-genai

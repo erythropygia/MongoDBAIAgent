@@ -104,7 +104,7 @@ def load_schema_into_faiss():
 
 
 
-def get_relevant_schema(user_query, similarity_threshold=0.5):
+def get_relevant_schema(user_query, similarity_threshold=0.55):
     """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
     global MAX_COLLECTION_COUNTS
     print("\nGetting relevant schema for your query...")

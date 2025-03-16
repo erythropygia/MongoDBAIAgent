@@ -22,10 +22,10 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
         prompt = prompts["generate_mongo_query_qwen"].format(schema=schema, user_query=first_user_query)
         CONSERVATIONS.append({'role': "user", "content": prompt})
 
-        response = generate_local(CONSERVATIONS)
+        response = generate_local(CONSERVATIONS, new_chat=True)
         CONSERVATIONS.append({'role': "assistant", "content": response})
 
-        while(try_count < 3):
+        while(try_count < 2):
             result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
             CONSERVATIONS.append({'role': "user", "content": result})
  
@@ -82,7 +82,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             return None    
     
     elif method == 2:
-        response = generate_local(CONSERVATIONS)
+        response = generate_local(CONSERVATIONS, new_chat=False)
         CONSERVATIONS.append({'role': "user", "content": repaired_query})
 
         while(try_count < 3):
@@ -95,7 +95,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             else:
                 print(f"Code execution failed. Trying again {try_count + 1}")
                 CONSERVATIONS.append({'role': "user", "content": result})
-                response = generate_local(CONSERVATIONS)
+                response = generate_local(CONSERVATIONS, new_chat=False)
                 CONSERVATIONS.append({'role': "assistant", "content": response})
 
                 result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 

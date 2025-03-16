@@ -7,19 +7,23 @@ with open("prompts.yaml", "r", encoding="utf-8") as file:
     prompts = yaml.safe_load(file)
 
 
-MODEL_PATH = "model/Qwen2.5.1-Coder-7B-Instruct-Q6_K.gguf"
+MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
 LLM = None
-SYSTEM_MESSAGE = ""
 TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
 
-if "r1" in MODEL_PATH:
+
+SYSTEM_MESSAGE = ""
+SYSTEM_MESSAGE_SHORT = ""
+
+if "r1" or "R1" in MODEL_PATH:
     SYSTEM_MESSAGE = prompts["system_message_r1"]
+    SYSTEM_MESSAGE_SHORT = prompts["system_message_short"]
 else:
     SYSTEM_MESSAGE = prompts["system_message"]
 
 
 def wake_up_qwen():
-    max_context_window = 8192
+    max_context_window = 32000
     global LLM
     LLM = Llama(model_path= MODEL_PATH,
                 n_gpu_layers=100,
@@ -29,17 +33,19 @@ def wake_up_qwen():
 def generate_local(prompts, new_chat=False):
     """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
     global SYSTEM_MESSAGE
+    global SYSTEM_MESSAGE_SHORT
 
     if new_chat == True:
         prompts.insert(0, {'role': "system", "content": SYSTEM_MESSAGE})
+    else:
+        prompts.insert(len(prompts) - 1, {'role': "system", "content": SYSTEM_MESSAGE_SHORT})
 
     context = format_chat_template(prompts)
 
     stream = LLM(context, 
-                 max_tokens=1024,
+                 max_tokens=512,
                  repeat_penalty=1.05, 
-                 temperature=0.7,                
-                 top_k=40,
+                 temperature=0.8,                
                  top_p=0.95,
                  stop=["<|im_end|>"], 
                  stream=True)  

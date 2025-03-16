@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import time
 from source.generate_schemas import extract_schemas
 from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
 from source.llm_pipeline import generate
@@ -36,9 +37,10 @@ def process_query(query, query_type):
     print_relevant_schemas(schema_data)
     response = generate(query_type, query, schema_data, None, True)
     if(response is not None):
-        print("Executing result:\n", response)
+        print("Executing result:\n")
+        print(response)
 
-        for i in range(1,3): 
+        for i in range(1,2): 
             while(True):            
                 confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
                 if confirmation == "y":
@@ -60,7 +62,8 @@ def process_query(query, query_type):
                 query_type = 3
 
             response = generate(query_type, query, schema_data, retry_reason, False)
-            print("Executing result:\n", response)
+            print("Executing result:\n")
+            print(response)
 
 
 def main():
@@ -79,7 +82,15 @@ def main():
     initialize_schema(args.connection_string)
     load_schema_into_faiss()
 
+    load_first = True
     while True:
+        if(load_first):
+            load_first = False
+        else:
+            print("\nRequest process terminated transitioning to a new one")
+            time.sleep(1)
+            load_first = False
+
         user_query = input("\nEnter your query (type 'exit' to quit): ").strip()
         if user_query.lower() == "exit":
             sys.exit("\nExiting program. Goodbye!")

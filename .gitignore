@@ -166,4 +166,4 @@ model/*
 faiss_mongo_schema/
 model/
 mongo_schema/
-run_script/
+generated_scripts/

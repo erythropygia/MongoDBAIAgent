@@ -10,20 +10,21 @@ def get_field_type(value):
         return "dict"
     elif isinstance(value, list):
         return "list"
-    elif isinstance(value, str):
-        return "str"
+    elif isinstance(value, bool): 
+        return "bool"
     elif isinstance(value, int):
         return "int"
     elif isinstance(value, float):
         return "float"
-    elif isinstance(value, bool):
-        return "bool"
+    elif isinstance(value, str):
+        return "str"
     elif "ObjectId" in str(type(value)):
         return "ObjectId"
     elif "datetime" in str(type(value)):
         return "datetime"
     else:
         return "unknown"
+
 
 def analyze_document_structure(document):
     """Bir belge içindeki tüm alanları ve veri tiplerini analiz eder."""

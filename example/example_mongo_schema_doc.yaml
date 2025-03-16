@@ -9,11 +9,11 @@
   Description: "Bu koleksiyon, kullanıcıların reklam verisi analizlerini içeren kayıtları barındırır. Kullanıcılar, belirli reklam kampanyalarına ait performans verilerini analiz edebilir, etkileşim oranlarını inceleyebilir ve hedef kitle analizleri yapabilir. Reklam verisi analizi, pazarlama stratejilerinin geliştirilmesine ve kampanya optimizasyonuna katkı sağlar. Analiz sonuçlarının başarılı bir şekilde iletilip iletilmediği ve tamamlanma durumu gibi metrikler de burada takip edilir."
   Enums:
     IsSuccessSent:
-      - true
-      - false
+      - "true"
+      - "false"
     IsComplete:
-      - true
-      - false
+      - "true"
+      - "false"
   EnumsDescription:
     IsSuccessSent: "Kullanıcının yaptığı reklam analizi isteğinin başarıyla gelip gelmediğini ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
     IsComplete: "Kullanıcının yaptığı reklam analiz işleminin başarıyla tamamlanıp tamamlanmadığını ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
@@ -24,14 +24,14 @@
   Description: "Bu koleksiyon, kullanıcıların metin analizlerine dair kayıtlarını içerir. Kullanıcılar, belirli metinleri duygu analizi, konu tespiti, anlamsal analiz gibi yöntemlerle değerlendirerek içgörüler elde edebilirler. Yapay zeka destekli analizler sayesinde metnin olumlu veya olumsuz olduğu, hangi duygular içerdiği, saldırgan veya ürünle ilgili olup olmadığı gibi bilgiler detaylı şekilde ölçümlenmektedir. DistilBERT ve büyük dil modelleri (LLM) tarafından üretilen analiz sonuçları, yüzdelik bazda detaylandırılarak saklanır. İşlem başarısı ve tamamlanma durumları da kayıt altına alınır."
   Enums:
     IsSuccessSent:
-      - true
-      - false
+      - "true"
+      - "false"
     IsDistilbertComplete:
-      - true
-      - false
+      - "true"
+      - "false"
     IsLLMComplete:
-      - true
-      - false
+      - "true"
+      - "false"
   EnumsDescription:
     IsSuccessSent: "Kullanıcının yaptığı veri analizi isteğinin başarıyla gelip gelmediğini ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
     IsDistilbertComplete: "Kullanıcının yaptığı veri analiz işlemini distilbert modelinin başarıyla tamamlayıp tamamlamadığını ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
@@ -54,11 +54,11 @@
   Description: "Bu koleksiyon, kullanıcıların CV (özgeçmiş) analizlerine ait sonuçlarını içerir. Kullanıcılar, CV’lerini sisteme yükleyerek belirli iş ilanlarıyla ne kadar uyumlu olduğunu değerlendirebilir. Yapay zeka destekli analizler, CV’de eksik olan veya güçlendirilmesi gereken bölümleri tespit ederek kullanıcılara öneriler sunar. Analiz sonuçlarının başarılı şekilde gönderilip gönderilmediği ve tamamlanma durumu kayıt altına alınır."
   Enums:
     IsSuccessSent:
-      - true
-      - false
+      - "true"
+      - "false"
     IsComplete:
-      - true
-      - false
+      - "true"
+      - "false"
   EnumsDescription:
     IsSuccessSent: "Kullanıcının yaptığı cv analizi isteğinin başarıyla gelip gelmediğini ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
     IsComplete: "Kullanıcının yaptığı cv analiz işleminin başarıyla tamamlanıp tamamlanmadığını ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
@@ -69,11 +69,11 @@
   Description: "Bu koleksiyon, kullanıcıların birden fazla CV’yi karşılaştırarak yaptığı analizleri içerir. İşe alım süreçlerinde, farklı adayların CV’leri belirli kriterler doğrultusunda kıyaslanarak en uygun adayın belirlenmesine yardımcı olur. Kullanıcılar ayrıca kendi CV'lerinin farklı versiyonlarını karşılaştırarak en iyi sonucu elde edebilir. Karşılaştırma işleminin tamamlanma durumu ve başarıyla iletilme bilgileri de burada saklanır."
   Enums:
     IsSuccessSent:
-      - true
-      - false
+      - "true"
+      - "false"
     IsComplete:
-      - true
-      - false
+      - "true"
+      - "false"
   EnumsDescription:
     IsSuccessSent: "Kullanıcının yaptığı cv karşılaştırma isteğinin başarıyla gelip gelmediğini ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
     IsComplete: "Kullanıcının yaptığı cv karşılaştırma  işleminin başarıyla tamamlanıp tamamlanmadığını ifade eder. true işlemin başarılı olduğunu false olmadığını ifade eder."
@@ -154,9 +154,8 @@
       - "Callback"
       - "User"
     IsEmailConfirmed:
-      - true
-      - false
+      - "true"
+      - "false"
   EnumsDescription:
     Role: "Kullanıcının sistemdeki yetki düzeyini belirtir. Admin yöneticileri, Callback sistemin dış servisler için oluşturduğu özel hesapları, User ise standart kullanıcıları ifade eder."
     IsEmailConfirmed: "Kullanıcının emailini onaylayıp onaylamadığını ifade eder. true ise onaylı, false ise onaysız email demektir."
-

@@ -47,7 +47,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
 
         print(CONSERVATIONS)
         if not is_successful:
-            print("Code execution attempts failed. Please try again.")
+            print("\nCode execution attempts failed. Please try again.\n")
             return None
     
     elif method == 1:
@@ -78,7 +78,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
 
         print(CONSERVATIONS)
         if not is_successful:
-            print("Code execution attempts failed. Please try again.")  
+            print("\nCode execution attempts failed. Please try again.\n")
             return None    
     
     elif method == 2:
@@ -109,7 +109,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
 
         print(CONSERVATIONS)
         if not is_successful:
-            print("Code execution attempts failed. Please try again.")  
+            print("\nCode execution attempts failed. Please try again.\n")
             return None
         
     elif method == 3:
@@ -140,6 +140,6 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
 
         print(CONSERVATIONS)
         if not is_successful:
-            print("Code execution attempts failed. Please try again.")  
+            print("\nCode execution attempts failed. Please try again.\n")
             return None
     

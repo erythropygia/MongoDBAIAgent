@@ -25,7 +25,7 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
         response = generate_local(CONSERVATIONS, new_chat=True)
         CONSERVATIONS.append({'role': "assistant", "content": response})
 
-        while(try_count < 2):
+        while(try_count < 3):
             result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
             CONSERVATIONS.append({'role': "user", "content": result})
  

@@ -40,7 +40,7 @@ def process_query(query, query_type):
         print("Executing result:\n")
         print(response)
 
-        for i in range(1,2): 
+        for i in range(1,3): 
             while(True):            
                 confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
                 if confirmation == "y":

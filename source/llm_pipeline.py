@@ -1,4 +1,4 @@
-import subprocess, time, re, os, yaml, sys
+import subprocess, time, re, os, yaml, sys, json
 from source.process.qwen_process import generate_local
 from source.process.gemini_process import generate_gemini
 from source.code_executor import CodeExecutor
@@ -143,3 +143,10 @@ def generate(method, first_user_query, schema, repaired_query, is_first = False)
             print("\nCode execution attempts failed. Please try again.\n")
             return None
     
+
+def save_chat_history():
+    folder_path = "chat_history"
+    file_path = os.path.join(folder_path, "chat_history.jsonl")
+
+    with open(file_path, "a", encoding="utf-8") as file:
+        file.write(json.dumps(CONSERVATIONS, ensure_ascii=False) + "\n")

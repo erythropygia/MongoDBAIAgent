@@ -3,14 +3,14 @@ import sys
 import argparse
 import time
 from source.generate_schemas import extract_schemas
-from source.rag import load_schema_into_faiss, get_relevant_schema, save_query_to_excel
-from source.llm_pipeline import generate
+from source.rag import load_schema_into_faiss, get_relevant_schema
+from source.llm_pipeline import generate, save_chat_history
 from source.code_executor import save_mongo_cs
 from source.process.qwen_process import wake_up_qwen
 from source.text_class import print_relevant_schemas
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-folders_to_create = ['generated_scripts', 'model', 'mongo_schema']
+folders_to_create = ['generated_scripts', 'model', 'mongo_schema', 'chat_history']
 
 for folder in folders_to_create:
     folder_path = os.path.join(current_dir, folder)
@@ -37,14 +37,14 @@ def process_query(query, query_type):
     print_relevant_schemas(schema_data)
     response = generate(query_type, query, schema_data, None, True)
     if(response is not None):
-        print("Executing result:\n")
+        print("\nExecuting result:\n")
         print(response)
 
         for i in range(1,3): 
             while(True):            
                 confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
                 if confirmation == "y":
-                    save_query_to_excel(schema_data, query)
+                    save_chat_history()
                     return
                 elif confirmation == "exit":
                     sys.exit("\nExiting program. Goodbye!")
@@ -62,7 +62,7 @@ def process_query(query, query_type):
                 query_type = 3
 
             response = generate(query_type, query, schema_data, retry_reason, False)
-            print("Executing result:\n")
+            print("\nExecuting result:\n")
             print(response)
 
 

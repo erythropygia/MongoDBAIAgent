@@ -7,8 +7,8 @@
             "DataId": "str",
             "DataSubject": "str",
             "Response": "str",
-            "IsSuccessSent": "int",
-            "IsComplete": "int"
+            "IsSuccessSent": "bool",
+            "IsComplete": "bool"
         },
         "DataAnalyses": {
             "_id": "ObjectId",
@@ -95,9 +95,9 @@
                     }
                 }
             },
-            "IsSuccessSent": "int",
-            "IsDistilbertComplete": "int",
-            "IsLLMComplete": "int"
+            "IsSuccessSent": "bool",
+            "IsDistilbertComplete": "bool",
+            "IsLLMComplete": "bool"
         },
         "Subscriptions": {
             "_id": "ObjectId",
@@ -128,8 +128,8 @@
             "DataId": "str",
             "HiringJob": "str",
             "CVResponse": "str",
-            "IsSuccessSent": "int",
-            "IsComplete": "int"
+            "IsSuccessSent": "bool",
+            "IsComplete": "bool"
         },
         "CVComparisons": {
             "_id": "ObjectId",
@@ -140,8 +140,8 @@
             "HiringJob": "str",
             "HiringDetail": "list",
             "HiringResponse": "list",
-            "IsSuccessSent": "int",
-            "IsComplete": "int"
+            "IsSuccessSent": "bool",
+            "IsComplete": "bool"
         }
     },
     "Emotion4U_NotificationDB": {
@@ -186,8 +186,8 @@
         "PaymentPackages": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
-            "RecordStatus": "str",
             "Package": "str",
+            "RecordStatus": "str",
             "Price": "float",
             "Discount": "int",
             "Quota": {
@@ -207,7 +207,7 @@
             "Email": "str",
             "Token": "str",
             "ExpiresAt": "int",
-            "IsTokenUsed": "int"
+            "IsTokenUsed": "bool"
         },
         "User": {
             "_id": "ObjectId",
@@ -218,7 +218,7 @@
             "Password": "str",
             "LastTokens": "list",
             "Role": "str",
-            "IsEmailConfirmed": "int"
+            "IsEmailConfirmed": "bool"
         }
     }
 }

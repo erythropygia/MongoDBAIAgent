@@ -182,25 +182,3 @@ def get_mongo_schema(db_name, collection_name):
         if collection_name in db_schema:
             return db_schema[collection_name]
     return None
-
-
-def save_query_to_excel(schema_data, query):
-    """
-    db_str = ", ".join(schema_data)
-    collection_str = ", ".join(collection_names)
-    
-    new_data = pd.DataFrame([[db_str, collection_str, query]], columns=["DB", "Collections", "Query"])
-
-    if not os.path.exists(EXCEL_FILE):
-        new_data.to_excel(EXCEL_FILE, index=False)
-    else:
-        existing_data = pd.read_excel(EXCEL_FILE)
-
-        if existing_data.empty:
-            new_data.to_excel(EXCEL_FILE, index=False)
-        else:
-            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
-            updated_data.to_excel(EXCEL_FILE, index=False)
-
-        print(f"Data save success. Thank you!")"
-    """

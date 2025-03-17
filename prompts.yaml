@@ -1,5 +1,10 @@
+system_message: |
+  Sen sadece Türkçe konuşan ve düşünen, MongoDB ve Python'da usta bir yapay zeka modelisin.
+  Kullanıcının isteklerini gerçekleştirecek python kodları üret.
+  **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
+
 ######################
-#########QWEN##########
+##### QWEN - R1 ######
 ######################
 
 system_message_r1: |
@@ -20,24 +25,7 @@ system_message_r1: |
   Burada ise soruya net ve doğru bir python kodu oluştur. **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
   </answer>
 
-system_message: |
-  Sen sadece Türkçe konuşan ve düşünen, MongoDB ve Python'da usta bir yapay zeka modelisin.
-  Kullanıcının isteklerini gerçekleştirecek python kodları üret.
-  **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
-
-generate_mongo_query_qwen: |
-  Aşağıdaki MongoDB şema(lar)ına dayanarak:
-  {schema}
-
-  Şu sorguyu gerçekleştiren bir Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
-  {user_query}
-
-  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. 
-  Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. 
-  Kodda aşağıdaki yapıyı uygula:
-  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
-
-system_message_short : |
+system_message_short_r1_qwen : |
   Sen sadece Türkçe konuşan ve düşünen, MongoDB ve Python'da usta bir yapay zeka modelisin.
   **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
   
@@ -52,8 +40,21 @@ system_message_short : |
 
 
 ######################
-#########GEMINI##########
+### GENERATE QUERY ###
 ######################
+
+generate_mongo_query_qwen: |
+  Aşağıdaki MongoDB şema(lar)ına dayanarak:
+  {schema}
+
+  Şu sorguyu gerçekleştiren bir Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
+  {user_query}
+
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. 
+  Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. 
+  Kodda aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+
 
 generate_mongo_query_gemini: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:

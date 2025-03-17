@@ -1,152 +1,145 @@
 import subprocess, time, re, os, yaml, sys, json
-from source.process.qwen_process import generate_local
-from source.process.gemini_process import generate_gemini
+from source.process.qwen_process import QwenProcess
+from source.process.gemini_process import GeminiProcess
 from source.code_executor import CodeExecutor
 
-CONSERVATIONS = []
-CODE_EXECUTOR = CodeExecutor()
+class LLMPipeline:
+    def __init__(self):
+        self.conservations = []
+        self.code_executor = CodeExecutor()
+        self.qwen_process = QwenProcess()
+        self.gemini_process = GeminiProcess()
 
+        with open("prompts.yaml", "r", encoding="utf-8") as file:
+            self.prompts = yaml.safe_load(file)
 
-with open("prompts.yaml", "r", encoding="utf-8") as file:
-    prompts = yaml.safe_load(file)
+    def generate(self, method, first_user_query, schema, repaired_query, is_first=False):
+        try_count = 0
+        if is_first:
+            self.conservations = []
 
-def generate(method, first_user_query, schema, repaired_query, is_first = False):
-    global CONSERVATIONS
-    global CODE_EXECUTOR
-    try_count = 0
-    if is_first:
-        CONSERVATIONS = []
+        print("Generating Query...")
 
-    print("Generating Query...")
-    if method == 0:
-        prompt = prompts["generate_mongo_query_qwen"].format(schema=schema, user_query=first_user_query)
-        CONSERVATIONS.append({'role': "user", "content": prompt})
+        if method == 0:
+            prompt = self.prompts["generate_mongo_query_qwen"].format(schema=schema, user_query=first_user_query)
+            self.conservations.append({'role': "user", "content": prompt})
 
-        response = generate_local(CONSERVATIONS, new_chat=True)
-        CONSERVATIONS.append({'role': "assistant", "content": response})
+            response = self.qwen_process.generate_local(self.conservations, new_chat=True)
+            self.conservations.append({'role': "assistant", "content": response})
 
-        while(try_count < 3):
-            result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
-            CONSERVATIONS.append({'role': "user", "content": result})
- 
-            if is_successful:
-                CONSERVATIONS.append({'role': "assistant", "content": response})
-                print(CONSERVATIONS)
-                return result
-            else:
-                print(f"Code execution failed. Trying again {try_count + 1}")  
-                response = generate_local(CONSERVATIONS)
-                result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
-                CONSERVATIONS.append({'role': "assistant", "content": response})
+            while try_count < 3:
+                result, is_successful = self.code_executor.execute_generated_code(response)
 
                 if is_successful:
                     return result
                 else:
-                    try_count += 1
-                    continue   
+                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    self.conservations.append({'role': "user", "content": result})
+                    response = self.qwen_process.generate_local(self.conservations)
+                    result, is_successful = self.code_executor.execute_generated_code(response)
+                    self.conservations.append({'role': "assistant", "content": response})
 
-        print(CONSERVATIONS)
-        if not is_successful:
-            print("\nCode execution attempts failed. Please try again.\n")
-            return None
-    
-    elif method == 1:
-        prompt = prompts["generate_mongo_query_gemini"].format(schema=schema, user_query=first_user_query)
-        CONSERVATIONS.append({'role': "user", "content": prompt})
+                    if is_successful:
+                        return result
+                    else:
+                        try_count += 1
+                        continue
 
-        response = generate_gemini(CONSERVATIONS, new_chat=True)
-        CONSERVATIONS.append({'role': "assistant", "content": response})
-        
-        while(try_count < 3):
-            result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 
+            if not is_successful:
+                print("\nCode execution attempts failed. Please try again.\n")
+                return None
 
-            if is_successful:
-                print(CONSERVATIONS)
-                return result
-            else:
-                print(f"Code execution failed. Trying again {try_count + 1}")
-                CONSERVATIONS.append({'role': "user", "content": result})
-                response = generate_gemini(CONSERVATIONS, new_chat=False)
-                result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
-                CONSERVATIONS.append({'role': "assistant", "content": response})
+        elif method == 1:  # Gemini process for method 1
+            prompt = self.prompts["generate_mongo_query_gemini"].format(schema=schema, user_query=first_user_query)
+            self.conservations.append({'role': "user", "content": prompt})
+
+            response = self.gemini_process.generate_gemini(self.conservations, new_chat=True)
+            self.conservations.append({'role': "assistant", "content": response})
+
+            while try_count < 3:
+                result, is_successful = self.code_executor.execute_generated_code(response)
 
                 if is_successful:
                     return result
                 else:
-                    try_count += 1
-                    continue
+                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    self.conservations.append({'role': "user", "content": result})
+                    response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
+                    result, is_successful = self.code_executor.execute_generated_code(response)
+                    self.conservations.append({'role': "assistant", "content": response})
 
-        print(CONSERVATIONS)
-        if not is_successful:
-            print("\nCode execution attempts failed. Please try again.\n")
-            return None    
-    
-    elif method == 2:
-        response = generate_local(CONSERVATIONS, new_chat=False)
-        CONSERVATIONS.append({'role': "user", "content": repaired_query})
+                    if is_successful:
+                        return result
+                    else:
+                        try_count += 1
+                        continue
 
-        while(try_count < 3):
-            result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
-            CONSERVATIONS.append({'role': "assistant", "content": response})
+            if not is_successful:
+                print("\nCode execution attempts failed. Please try again.\n")
+                return None
 
-            if is_successful:
-                print(CONSERVATIONS)
-                return result
-            else:
-                print(f"Code execution failed. Trying again {try_count + 1}")
-                CONSERVATIONS.append({'role': "user", "content": result})
-                response = generate_local(CONSERVATIONS, new_chat=False)
-                CONSERVATIONS.append({'role': "assistant", "content": response})
+        # Handling methods for repaired query
+        elif method == 2:
+            self.conservations.append({'role': "user", "content": repaired_query})
+            response = self.qwen_process.generate_local(self.conservations, new_chat=False)
 
-                result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 
+            while try_count < 3:
+                result, is_successful = self.code_executor.execute_generated_code(response)
+                self.conservations.append({'role': "assistant", "content": response})
 
                 if is_successful:
                     return result
                 else:
-                    CONSERVATIONS.append({'role': "user", "content": result})
-                    try_count += 1
-                    continue   
+                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    self.conservations.append({'role': "user", "content": result})
+                    response = self.qwen_process.generate_local(self.conservations, new_chat=False)
+                    self.conservations.append({'role': "assistant", "content": response})
 
-        print(CONSERVATIONS)
-        if not is_successful:
-            print("\nCode execution attempts failed. Please try again.\n")
-            return None
-        
-    elif method == 3:
-        CONSERVATIONS.append({'role': "user", "content": repaired_query})
-        response = generate_gemini(CONSERVATIONS, new_chat=False) 
+                    result, is_successful = self.code_executor.execute_generated_code(response)
 
-        while(try_count < 3):
-            result, is_successful = CODE_EXECUTOR.execute_generated_code(response) 
-            CONSERVATIONS.append({'role': "assistant", "content": response})
+                    if is_successful:
+                        return result
+                    else:
+                        self.conservations.append({'role': "user", "content": result})
+                        try_count += 1
+                        continue
 
-            if is_successful:
-                print(CONSERVATIONS)
-                return result
-            else:
-                print(f"Code execution failed. Trying again {try_count + 1}")
-                CONSERVATIONS.append({'role': "user", "content": result})
-                response = generate_gemini(CONSERVATIONS, new_chat=False)
-                CONSERVATIONS.append({'role': "assistant", "content": response})
+            if not is_successful:
+                print("\nCode execution attempts failed. Please try again.\n")
+                return None
 
-                result, is_successful = CODE_EXECUTOR.execute_generated_code(response)
+        elif method == 3:
+            self.conservations.append({'role': "user", "content": repaired_query})
+            response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
+
+            while try_count < 3:
+                result, is_successful = self.code_executor.execute_generated_code(response)
+                self.conservations.append({'role': "assistant", "content": response})
 
                 if is_successful:
                     return result
                 else:
-                    CONSERVATIONS.append({'role': "user", "content": result})
-                    try_count += 1
-                    continue   
+                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    self.conservations.append({'role': "user", "content": result})
+                    response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
+                    self.conservations.append({'role': "assistant", "content": response})
 
-        print(CONSERVATIONS)
-        if not is_successful:
-            print("\nCode execution attempts failed. Please try again.\n")
-            return None
-    
+                    result, is_successful = self.code_executor.execute_generated_code(response)
 
-def save_chat_history():
-    folder_path = "chat_history"
-    file_path = os.path.join(folder_path, "chat_history.jsonl")
+                    if is_successful:
+                        return result
+                    else:
+                        self.conservations.append({'role': "user", "content": result})
+                        try_count += 1
+                        continue
 
-    with open(file_path, "a", encoding="utf-8") as file:
-        file.write(json.dumps(CONSERVATIONS, ensure_ascii=False) + "\n")
+            if not is_successful:
+                print("\nCode execution attempts failed. Please try again.\n")
+                return None
+
+    def save_chat_history(self):
+        folder_path = "chat_history"
+        file_path = os.path.join(folder_path, "chat_history.jsonl")
+
+        with open(file_path, "a", encoding="utf-8") as file:
+            file.write(json.dumps(self.conservations, ensure_ascii=False) + "\n")

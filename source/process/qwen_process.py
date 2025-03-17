@@ -1,79 +1,84 @@
+import yaml
+import sys
+import os
 from llama_cpp import Llama
-import yaml, sys, os
 from transformers import AutoTokenizer
 
+# Preventing parallelism warnings for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-with open("prompts.yaml", "r", encoding="utf-8") as file:
-    prompts = yaml.safe_load(file)
 
-
-MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
 LLM = None
 TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
 
+class QwenProcess:
+    def __init__(self):
+        # Load prompts from YAML file
+        with open("prompts.yaml", "r", encoding="utf-8") as file:
+            self.prompts = yaml.safe_load(file)
 
-SYSTEM_MESSAGE = ""
-SYSTEM_MESSAGE_SHORT = ""
+        self.MODEL_PATH = "model\qwen2.5-coder-3b-instruct-fp16.gguf"
+        self.SYSTEM_MESSAGE = ""
 
-if "r1" or "R1" in MODEL_PATH:
-    SYSTEM_MESSAGE = prompts["system_message_r1"]
-    SYSTEM_MESSAGE_SHORT = prompts["system_message_short"]
-else:
-    SYSTEM_MESSAGE = prompts["system_message"]
+        if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
+            self.SYSTEM_MESSAGE = self.prompts["system_message_r1"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message_short_r1_qwen"]
 
+        else:
+            self.SYSTEM_MESSAGE = self.prompts["system_message"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message"]
 
-def wake_up_qwen():
-    max_context_window = 32000
-    global LLM
-    LLM = Llama(model_path= MODEL_PATH,
-                n_gpu_layers=100,
-                n_ctx=max_context_window)
-    
+    def initialize_model(self):
+        global LLM
+        """Initialize the LLaMA model for Qwen"""
+        max_context_window = 32000
+        LLM = Llama(model_path=self.MODEL_PATH,
+                         n_gpu_layers=100,
+                         n_ctx=max_context_window)
 
-def generate_local(prompts, new_chat=False):
-    """LLaMA veya GGUF modeli ile doğal dildeki sorguyu MongoDB query'ye çevirir."""
-    global SYSTEM_MESSAGE
-    global SYSTEM_MESSAGE_SHORT
+    def _format_message(self, prompts):
+        """Format the messages into a structure compatible with Qwen model"""
+        last_user_message = None
+        for message in reversed(prompts):
+            if message['role'] == 'user':
+                last_user_message = message['content']
+                break
+        return last_user_message
 
-    if new_chat == True:
-        prompts.insert(0, {'role': "system", "content": SYSTEM_MESSAGE})
-    else:
-        prompts.insert(len(prompts) - 1, {'role': "system", "content": SYSTEM_MESSAGE_SHORT})
+    def generate_local(self, prompts, new_chat=False):
+        """Generate a response using the Qwen model based on input prompts"""
+        global LLM
 
-    context = format_chat_template(prompts)
+        if new_chat:
+            prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE})
+        else:
+            prompts.insert(len(prompts) - 1, {'role': "system", "content": self.SYSTEM_MESSAGE_SHORT})
 
-    stream = LLM(context, 
-                 max_tokens=512,
-                 repeat_penalty=1.05, 
-                 temperature=0.8,                
-                 top_p=0.95,
-                 stop=["<|im_end|>"], 
-                 stream=True)  
+        context = self._format_chat_template(prompts)
 
-    print("Agent: ", end="", flush=True)
+        stream = LLM(context,
+                          max_tokens=512,
+                          repeat_penalty=1.05,
+                          temperature=0.8,
+                          top_p=0.95,
+                          stop=["<|im_end|>"],
+                          stream=True)
 
-    assistant_message = ""  
+        assistant_message = ""
+        for output in stream:
+            token_text = output["choices"][0]["text"]
+            print(token_text, end="", flush=True)
+            assistant_message += token_text
 
-    for output in stream:
-        token_text = output["choices"][0]["text"]
-        print(token_text, end="", flush=True)
-        assistant_message += token_text  
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
-    sys.stdout.write("\n")  
-    sys.stdout.flush()
-    
-    return assistant_message
+        return assistant_message
 
-def format_chat_template(prompts):
-    global TOKENIZER
-    global SYSTEM_MESSAGE
-
-    text = TOKENIZER.apply_chat_template(
-        prompts,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-
-    return text
-
-    
+    def _format_chat_template(self, prompts):
+        """Format the chat prompts using the tokenizer"""
+        global TOKENIZER
+        return TOKENIZER.apply_chat_template(
+            prompts,
+            tokenize=False,
+            add_generation_prompt=True
+        )

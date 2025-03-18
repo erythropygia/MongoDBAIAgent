@@ -57,8 +57,7 @@ class MongoAgent:
                 """,
                 style="bold blue"
             )
-            return
-
+    
     def initialize_schema(self):
         schema_file = "./mongo_schema/mongo_schema.json"
         yaml_schema_file = "./mongo_schema/mongo_schema_doc.yaml"

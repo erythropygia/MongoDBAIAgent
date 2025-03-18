@@ -4,6 +4,9 @@ import os
 from llama_cpp import Llama, llama_log_set
 import ctypes
 from transformers import AutoTokenizer
+from source.utils.logger import RichLogger
+
+logger = RichLogger()
 
 def disable_verbose_llama_log(level, message, user_data):
     pass
@@ -20,8 +23,12 @@ TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
 class QwenProcess:
     def __init__(self):
         # Load prompts from YAML file
-        with open("prompts.yaml", "r", encoding="utf-8") as file:
-            self.prompts = yaml.safe_load(file)
+        try:
+            with open("prompts.yaml", "r", encoding="utf-8") as file:
+                self.prompts = yaml.safe_load(file)
+        except:
+            logger.panel("ERROR LOADING prompts.yaml", "Missing prompts.yaml in project folder! Please check your configuration.", style= "bold red")
+            sys.exit(1)
 
         self.MODEL_PATH = "model\qwen2.5-coder-3b-instruct-fp16.gguf"
         self.SYSTEM_MESSAGE = ""

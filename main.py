@@ -11,20 +11,18 @@ logger = RichLogger()
 
 class MongoAgent:
     def __init__(self, model_type):
-        self.connection_string = config('CONNECTION_STRING')
-        if not self.connection_string: 
-            logger.panel("ERROR LOADING .ENV", "Missing 'CONNECTION_STRING' in config file! Please check your configuration", style= "bold red")
-        else:
+        try:
+            self.connection_string = config('CONNECTION_STRING')
             logger.panel("LOADING .ENV", "CONNECTION_STRING INJECTED")
-
+        except:
+            logger.panel("ERROR LOADING .ENV", "Missing 'CONNECTION_STRING' in config file! Please check your configuration. Default using: mongodb://localhost:27017/", style= "bold red")
+            self.connection_string = "mongodb://localhost:27017/"
         
         self.model_type = model_type
         self.schema_extractor = SchemaExtractor()
         self.rag_handler = RagHandler()
-        self.llm_pipeline = LLMPipeline()
+        self.llm_pipeline = LLMPipeline(model_type = model_type)
         self.code_executor = CodeExecutor()
-        if(model_type == 0):
-            self.qwen_process = QwenProcess()
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.folders_to_create = ['generated_scripts', 'model', 'mongo_schema', 'chat_history']
         self.initialize_folders()
@@ -52,9 +50,9 @@ class MongoAgent:
 
         else:
             logger.show_panel(
-                title="ERROR",
+                title="WARNING",
                 content=f"""
-                MongoDB connection failed! Please check your connection string[/bold cyan]
+                [bold red]MongoDB connection failed! Please check your connection string[/bold red]
                 Model Type: [bold cyan]{model_type_str}[/bold cyan]
                 """,
                 style="bold blue"
@@ -77,7 +75,6 @@ class MongoAgent:
             logger.panel("RESULT", "No suitable schema found. Please try again.", style="bold red")
             return
 
-        logger.log(str(schema_data))
         response = self.llm_pipeline.generate(self.model_type, query, schema_data, None, True)
         if response is not None:
             logger.panel("EXECUTING RESULT", response, style= "bold green")
@@ -109,11 +106,6 @@ class MongoAgent:
     def run(self):
         self.code_executor.save_mongo_cs_for_execute(self.connection_string)
         self.connection_check()
-
-        if self.model_type == 0:
-            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style= "bold yellow")
-            self.qwen_process.initialize_model()
-
         self.initialize_schema()
         self.rag_handler.load_schema_into_faiss()
 
@@ -122,7 +114,6 @@ class MongoAgent:
             if load_first:
                 load_first = False
             else:
-                logger.clear()
                 logger.panel("NEW REQUEST", "Request process terminated transitioning to a new one", style= "bold green")
                 self.llm_pipeline.save_chat_history()
                 time.sleep(1)

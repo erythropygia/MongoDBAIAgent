@@ -108,8 +108,7 @@ class RagHandler:
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
     def get_relevant_schema(self, user_query, similarity_threshold=0.55):
-        logger.log(f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})")
-        logger.log("Searching Schema")
+        logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style= "bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:
             self.MAX_COLLECTION_COUNTS = self.get_max_collection_counts()
@@ -143,7 +142,7 @@ class RagHandler:
             schema_info_list.append(schema_info)
 
         for schema_info in schema_info_list:
-            logger.table("Schema Information", schema_info)
+            logger.table("Found Schema Information", schema_info)
         return schema_info_list
 
     def get_max_collection_counts(self):

@@ -7,16 +7,20 @@ from source.utils.logger import RichLogger
 logger = RichLogger()
 
 class LLMPipeline:
-    def __init__(self):
+    def __init__(self, model_type):
         self.conservations = []
         self.code_executor = CodeExecutor()
-        self.qwen_process = QwenProcess()
-        self.gemini_process = GeminiProcess()
+        if model_type == 0:
+            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style= "bold yellow")
+            self.qwen_process = QwenProcess()
+            self.qwen_process.initialize_model()
+        else:
+            self.gemini_process = GeminiProcess()
 
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
-    def     generate(self, method, first_user_query, schema, repaired_query, is_first=False):
+    def generate(self, method, first_user_query, schema, repaired_query, is_first=False):
         try_count = 0
         if is_first:
             self.conservations = []

@@ -37,14 +37,6 @@ class RichLogger:
 
     
     def prompt_panel(self, question: str, choices: Optional[List[int]] = None, default: Optional[int] = None) -> int:
-        """
-        Kullanıcıdan giriş alır ve bir panel içinde gösterir.
-        
-        :param question: Kullanıcıya sorulacak soru.
-        :param choices: İzin verilen değerler (isteğe bağlı).
-        :param default: Varsayılan değer (isteğe bağlı).
-        :return: Kullanıcının girdiği değer.
-        """
         while True:
             value = Prompt.ask(question, default=default, console=self.console)
             
@@ -65,23 +57,14 @@ class RichLogger:
 
     
     def show_panel(self, title: str, content: str, style: str = "bold green"):
-        """
-        Verilen başlık ve içeriği bir panel içinde gösterir.
-        """
         panel = Panel(content, title=title, title_align="left", border_style=style)
         self.console.print(panel)
 
     def prompt_input(self, question: str, default: Optional[str] = None) -> str:
-        """
-        Kullanıcıdan metin girişi alır ve bir panel içinde gösterir.
-        """
         value = Prompt.ask(question, default=default, console=self.console)
         return value
 
     def prompt_choice(self, question: str, choices: List[str], default: Optional[str] = None) -> str:
-        """
-        Kullanıcıdan bir seçim yapmasını ister ve bir panel içinde gösterir.
-        """
         value = Prompt.ask(
             question,
             choices=choices,

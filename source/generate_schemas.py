@@ -20,7 +20,6 @@ class SchemaExtractor:
             return False
 
     def get_field_type(self, value):
-        """MongoDB belgelerindeki veri tipini döndürür."""
         if isinstance(value, dict):
             return "dict"
         elif isinstance(value, list):
@@ -41,7 +40,6 @@ class SchemaExtractor:
             return "unknown"
 
     def analyze_document_structure(self, document):
-        """Bir belge içindeki tüm alanları ve veri tiplerini analiz eder."""
         field_types = {}
 
         for key, value in document.items():
@@ -57,7 +55,6 @@ class SchemaExtractor:
         return field_types
 
     def extract_schemas(self, connection_string, schema_file="mongo_schema.json", schema_doc_file="mongo_schema_doc.yaml", schema_path="./mongo_schema/"):
-        """Tüm veritabanlarını ve koleksiyonları analiz eder, şemayı JSON olarak ve YAML dokümanını kaydeder."""
         logger.log("Extracting Schema")
 
         os.makedirs(schema_path, exist_ok=True)  # Klasör yoksa oluştur

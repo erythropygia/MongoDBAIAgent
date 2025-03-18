@@ -2,6 +2,9 @@ import yaml, time
 from decouple import config
 from google import genai
 from google.genai import types
+from source.utils.logger import RichLogger
+
+logger = RichLogger()
 
 class GeminiProcess:
     def __init__(self):
@@ -28,10 +31,8 @@ class GeminiProcess:
             self.start_new_chat()
         prompt = self._format_message(prompts)
         response = self.chat.send_message(prompt.strip())
-    
-        print("Agent: ", end="", flush=True)
-        print(response.text)
-    
+        # Replace streaming prints with formatted log output
+        logger.log("Agent: " + response.text)
         return response.text
 
     def _format_message(self, prompts):

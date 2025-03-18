@@ -2,6 +2,9 @@ import subprocess, time, re, os, yaml, sys, json
 from source.process.qwen_process import QwenProcess
 from source.process.gemini_process import GeminiProcess
 from source.code_executor import CodeExecutor
+from source.utils.logger import RichLogger
+
+logger = RichLogger()
 
 class LLMPipeline:
     def __init__(self):
@@ -13,12 +16,12 @@ class LLMPipeline:
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
-    def generate(self, method, first_user_query, schema, repaired_query, is_first=False):
+    def     generate(self, method, first_user_query, schema, repaired_query, is_first=False):
         try_count = 0
         if is_first:
             self.conservations = []
 
-        print("Generating Query...")
+        logger.log("Generating Query...")
 
         if method == 0:
             prompt = self.prompts["generate_mongo_query_qwen"].format(schema=schema, user_query=first_user_query)
@@ -33,7 +36,7 @@ class LLMPipeline:
                 if is_successful:
                     return result
                 else:
-                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
                     self.conservations.append({'role': "user", "content": result})
                     response = self.qwen_process.generate_local(self.conservations)
                     result, is_successful = self.code_executor.execute_generated_code(response)
@@ -46,7 +49,7 @@ class LLMPipeline:
                         continue
 
             if not is_successful:
-                print("\nCode execution attempts failed. Please try again.\n")
+                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
                 return None
 
         elif method == 1:  # Gemini process for method 1
@@ -62,7 +65,7 @@ class LLMPipeline:
                 if is_successful:
                     return result
                 else:
-                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
                     self.conservations.append({'role': "user", "content": result})
                     response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
                     result, is_successful = self.code_executor.execute_generated_code(response)
@@ -75,7 +78,7 @@ class LLMPipeline:
                         continue
 
             if not is_successful:
-                print("\nCode execution attempts failed. Please try again.\n")
+                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
                 return None
 
         # Handling methods for repaired query
@@ -90,7 +93,7 @@ class LLMPipeline:
                 if is_successful:
                     return result
                 else:
-                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
                     self.conservations.append({'role': "user", "content": result})
                     response = self.qwen_process.generate_local(self.conservations, new_chat=False)
                     self.conservations.append({'role': "assistant", "content": response})
@@ -105,7 +108,7 @@ class LLMPipeline:
                         continue
 
             if not is_successful:
-                print("\nCode execution attempts failed. Please try again.\n")
+                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
                 return None
 
         elif method == 3:
@@ -119,7 +122,7 @@ class LLMPipeline:
                 if is_successful:
                     return result
                 else:
-                    print(f"Code execution failed. Trying again {try_count + 1}")
+                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
                     self.conservations.append({'role': "user", "content": result})
                     response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
                     self.conservations.append({'role': "assistant", "content": response})
@@ -134,7 +137,7 @@ class LLMPipeline:
                         continue
 
             if not is_successful:
-                print("\nCode execution attempts failed. Please try again.\n")
+                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
                 return None
 
     def save_chat_history(self):

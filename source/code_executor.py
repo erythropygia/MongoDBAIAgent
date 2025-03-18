@@ -1,5 +1,8 @@
 import subprocess, os, sys
 import time, random, string
+from source.utils.logger import RichLogger
+
+logger = RichLogger()
 
 CONNECTION_STRING = ""
 
@@ -22,7 +25,7 @@ class CodeExecutor:
         return text, False
 
     def execute_generated_code(self, code):
-        print("Running script")
+        logger.log("Running script")
 
         script, status = self.extract_and_update_mongodb_connection_string(code)
 

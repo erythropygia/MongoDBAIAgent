@@ -7,17 +7,19 @@ from source.rag import RagHandler
 from source.llm_pipeline import LLMPipeline
 from source.code_executor import CodeExecutor
 from source.process.qwen_process import QwenProcess
-from source.text_class import print_relevant_schemas
+from source.utils.logger import RichLogger
+
+logger = RichLogger()
 
 class MongoAgent:
-    def __init__(self, connection_string, query_type):
+    def __init__(self, connection_string, model_type):
         self.connection_string = connection_string
-        self.query_type = query_type
+        self.model_type = model_type
         self.schema_extractor = SchemaExtractor()
         self.rag_handler = RagHandler()
         self.llm_pipeline = LLMPipeline()
         self.code_executor = CodeExecutor()
-        if(query_type == 0):
+        if(model_type == 0):
             self.qwen_process = QwenProcess()
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.folders_to_create = ['generated_scripts', 'model', 'mongo_schema', 'chat_history']
@@ -27,31 +29,29 @@ class MongoAgent:
         for folder in self.folders_to_create:
             folder_path = os.path.join(self.current_dir, folder)
             if not os.path.exists(folder_path):
-                print(f"{folder} folder not found. Creating...")
+                logger.panel("INFO", f"{folder} folder not found. Creating...", style="bold blue")
                 os.makedirs(folder_path)
 
     def initialize_schema(self):
         schema_file = "./mongo_schema/mongo_schema.json"
         yaml_schema_file = "./mongo_schema/mongo_schema_doc.yaml"
         if not os.path.exists(schema_file) or not os.path.exists(yaml_schema_file):
-            print("\nDatabase schema file not found. Generating schema...")
+            logger.panel("INFO", "Database schema file not found. Generating schema...", style="bold blue")
             self.schema_extractor.extract_schemas(self.connection_string)
-            print("Schema extraction completed.\n")
+            logger.panel("INFO", "Schema extraction completed.", style="bold green")
         else:
-            print("\nDatabase schema file found. Loading schema...\n")
+            logger.panel("INFO", "Database schema file found. Loading schema...", style="bold blue")
 
     def process_query(self, query):
         schema_data = self.rag_handler.get_relevant_schema(query)
         if not schema_data:
-            print("No suitable schema found. Please try again.")
+            logger.panel("RESULT", "No suitable schema found. Please try again.", style="bold red")
             return
 
-        print_relevant_schemas(schema_data)
-        response = self.llm_pipeline.generate(self.query_type, query, schema_data, None, True)
+        logger.log(str(schema_data))
+        response = self.llm_pipeline.generate(self.model_type, query, schema_data, None, True)
         if response is not None:
-            print("\nExecuting result:\n")
-            print(response)
-
+            logger.panel("EXECUTING RESULT", response, style= "bold green")
             for i in range(1, 3):
                 while True:
                     confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
@@ -63,26 +63,25 @@ class MongoAgent:
                     elif confirmation == "n":
                         break
                     else:
-                        print("Please type y/n or exit.")
+                        logger.log("Please type y/n or exit.")
                         continue
 
                 retry_reason = input("\nWhat was incorrect? Please describe the issue: ").strip()
 
-                if self.query_type == 0:
-                    self.query_type = 2
-                elif self.query_type == 1:
-                    self.query_type = 3
+                if self.model_type == 0:
+                    self.model_type = 2
+                elif self.model_type == 1:
+                    self.model_type = 3
 
-                response = self.llm_pipeline.generate(self.query_type, query, schema_data, retry_reason, False)
-                print("\nExecuting result:\n")
-                print(response)
+                response = self.llm_pipeline.generate(self.model_type, query, schema_data, retry_reason, False)
+                logger.panel("EXECUTING RESULT",response, style= "bold green")
+
 
     def run(self):
         self.code_executor.save_mongo_cs(self.connection_string)
 
-        if self.query_type == 0:
-            print("\nSelected Query Type: Local Model")
-            print("\nBuilding the local model...")
+        if self.model_type == 0:
+            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style= "bold yellow")
             self.qwen_process.initialize_model()
 
         self.initialize_schema()
@@ -93,24 +92,54 @@ class MongoAgent:
             if load_first:
                 load_first = False
             else:
-                print("\nRequest process terminated transitioning to a new one")
+                logger.clear()
+                logger.panel("NEW REQUEST", "Request process terminated transitioning to a new one", style= "bold green")
                 self.llm_pipeline.save_chat_history()
                 time.sleep(1)
 
-            user_query = input("\nEnter your query (type 'exit' to quit): ").strip()
+            user_query = input("Enter your query (type 'exit' to quit): ").strip()
             if user_query.lower() == "exit":
                 sys.exit("\nExiting program. Goodbye!")
             self.process_query(user_query)
 
 
 def main():
-    #parser = argparse.ArgumentParser(description="MongoAgent")
-    #parser.add_argument("--connection-string", type=str, required=True, help="MongoDB Connection String")
-    #parser.add_argument("--query-type", type=int, choices=[0, 1], required=True, help="Specify query type: 'local(0)' or 'gemini(1)'")
-    #args = parser.parse_args()
 
-    #generator = MongoAgent(args.connection_string, args.query_type)
-    generator = MongoAgent("mongodb+srv://noreplyemotion4u:45kVomOnb38h3VFU@emotion4u-basecluster.5gbds.mongodb.net/admin?retryWrites=true&loadBalanced=false&replicaSet=atlas-xp4kqi-shard-0&readPreference=primary&srvServiceName=mongodb&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-1", 0)
+    version_info = {
+        "Name": "Mongo Agent",
+        "Version": "0.1.0",
+        "Author": "erythropygia",
+    }
+    logger.table("Information", version_info)
+
+    connection_string = logger.prompt_input(
+        question="Enter MongoDB Connection String"
+    )
+
+    model_info = {
+        "Local Model (Qwen)": 0,
+        "Gemini": 1
+    }
+    logger.table("Model Type", model_info)
+
+
+    model_type = logger.prompt_panel(
+        question="Select Model Type (0 or 1)",
+        choices=[0, 1]
+    )
+
+    model_type_str = next((key for key, value in model_info.items() if value == model_type), "Model not found")
+
+    logger.show_panel(
+    title="BUILD SCHEMA",
+    content=f"""
+    Connection String: [bold cyan]{connection_string}[/bold cyan]
+    Model Type: [bold cyan]{model_type_str}[/bold cyan]
+    """,
+    style="bold blue"
+)
+
+    generator = MongoAgent(connection_string, model_type)
     generator.run()
 
 

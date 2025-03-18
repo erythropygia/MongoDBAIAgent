@@ -3,10 +3,21 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import pandas as pd
+from source.utils.logger import RichLogger
 
-import warnings
+import warnings, logging
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
-warnings.filterwarnings("ignore", category=Warning) 
+warnings.filterwarnings("ignore", category=Warning)
+warnings.filterwarnings('ignore',category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
+
+os.environ["TRANSFORMERS_VERBOSITY"] = "error" 
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+logger = RichLogger()
 
 class RagHandler:
     def __init__(self):
@@ -20,22 +31,21 @@ class RagHandler:
     def load_schema_into_faiss(self):
         """YAML şemasını FAISS içine yükler ve örnek sorguları ekler."""
         if os.path.exists(self.FAISS_INDEX):
-            print("\nFAISS index already exists. This process is skipped")
-            print("Loading FAISS schema")
+            logger.panel("INFO", "FAISS index already exists. This process is skipped.. Loading FAISS schema", style="bold blue")
             embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
             self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
             return
 
-        print("Generating FAISS schema")
-        print(f"Checking YAML File")
+        logger.log("Generating FAISS schema")
+        logger.log("Checking YAML File")
         if not os.path.exists(self.SCHEMA_DOC_FILE):
-            print(f"ERROR: YAML file not found: {self.SCHEMA_DOC_FILE}. Please ensure you have created the file and it is in the correct path.")
+            logger.log(f"ERROR: YAML file not found: {self.SCHEMA_DOC_FILE}. Please ensure you have created the file and it is in the correct path.", style="bold red")
             return
 
         with open(self.SCHEMA_DOC_FILE, "r", encoding="utf-8") as f:
             yaml_data = yaml.safe_load(f)
 
-        print(f"YAML Data Loaded")
+        logger.log("YAML Data Loaded")
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -47,7 +57,7 @@ class RagHandler:
             try:
                 entry_dict = yaml.safe_load(entry_string)  
             except yaml.YAMLError as e:
-                print(f"ERROR: YAML parsing failed for entry {entry_number}: {e}")
+                logger.log(f"ERROR: YAML parsing failed for entry {entry_number}: {e}", style="bold red")
                 return
 
             if isinstance(entry_dict, dict) and entry_dict:
@@ -84,8 +94,8 @@ class RagHandler:
         split_texts = []
         split_metadata = []
 
-        print("Loading schema into FAISS...")
-        print("Indexing Schema")
+        logger.log("Loading schema into FAISS...")
+        logger.log("Indexing Schema")
 
         for i, doc in enumerate(docs):
             split_parts = text_splitter.split_text(doc)
@@ -95,18 +105,17 @@ class RagHandler:
         faiss_db = FAISS.from_texts(split_texts, embeddings, metadatas=split_metadata)
         faiss_db.save_local(self.FAISS_INDEX)
 
-        print("Schema successfully loaded into FAISS.\n")
+        logger.log("Schema successfully loaded into FAISS.\n")
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
     def get_relevant_schema(self, user_query, similarity_threshold=0.55):
-        """FAISS veritabanından uygun MongoDB şemalarını ve DB + koleksiyon bilgilerini getirir."""
-        print("\nGetting relevant schema for your query...")
-        print("\nSearching Schema")
+        logger.log(f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})")
+        logger.log("Searching Schema")
 
         if self.MAX_COLLECTION_COUNTS == 0:
             self.MAX_COLLECTION_COUNTS = self.get_max_collection_counts()
             if self.MAX_COLLECTION_COUNTS == 0:
-                print("ERROR: Maximum collection count not found. Please check the YAML schema file.")
+                logger.log("ERROR: Maximum collection count not found. Please check the YAML schema file.", style="bold red")
                 sys.exit(1)
         
         docs = self.FAISS_DB.similarity_search_with_score(user_query, k=self.MAX_COLLECTION_COUNTS)
@@ -150,10 +159,10 @@ class RagHandler:
                 return 0 
 
         except FileNotFoundError:
-            print(f"ERROR: '{self.SCHEMA_DOC_FILE}' not found.")
+            logger.log(f"ERROR: '{self.SCHEMA_DOC_FILE}' not found.", style="bold red")
             return 0
         except Exception as e:
-            print(f"ERROR: An error occurred while reading the YAML file: {e}")
+            logger.log(f"ERROR: An error occurred while reading the YAML file: {e}", style="bold red")
             return 0
         
     def get_mongo_schema(self, db_name, collection_name):
@@ -161,13 +170,13 @@ class RagHandler:
             with open(self.SCHEMA_FILE, 'r', encoding='utf-8') as file:
                 schema_data = json.load(file)
         except FileNotFoundError:
-            print(f"ERROR: Schema file '{self.SCHEMA_FILE}' not found.")
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not found.", style="bold red")
             return None
         except json.JSONDecodeError:
-            print(f"ERROR: Schema file '{self.SCHEMA_FILE}' not in a valid JSON format.")
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not in a valid JSON format.", style="bold red")
             return None
         except Exception as e:
-            print(f"ERROR: An error occurred while reading the schema file: {e}")
+            logger.log(f"ERROR: An error occurred while reading the schema file: {e}", style="bold red")
             return None
 
         if db_name in schema_data:

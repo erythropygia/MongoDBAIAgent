@@ -141,8 +141,11 @@ class LLMPipeline:
                 return None
 
     def save_chat_history(self):
-        folder_path = "chat_history"
-        file_path = os.path.join(folder_path, "chat_history.jsonl")
+        if(len(self.conservations)) != 0:
+            folder_path = "chat_history"
+            file_path = os.path.join(folder_path, "chat_history.jsonl")
 
-        with open(file_path, "a", encoding="utf-8") as file:
-            file.write(json.dumps(self.conservations, ensure_ascii=False) + "\n")
+            with open(file_path, "a", encoding="utf-8") as file:
+                file.write(json.dumps(self.conservations, ensure_ascii=False) + "\n")
+            
+            self.conservations = []

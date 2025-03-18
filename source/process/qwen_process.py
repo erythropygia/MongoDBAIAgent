@@ -16,7 +16,7 @@ class QwenProcess:
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
-        self.MODEL_PATH = "model\qwen2.5-coder-3b-instruct-fp16.gguf"
+        self.MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
         self.SYSTEM_MESSAGE = ""
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:

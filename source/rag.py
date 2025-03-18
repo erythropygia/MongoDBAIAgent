@@ -94,8 +94,7 @@ class RagHandler:
         split_texts = []
         split_metadata = []
 
-        logger.log("Loading schema into FAISS...")
-        logger.log("Indexing Schema")
+        logger.log("Loading schema into FAISS... Indexing Schema")
 
         for i, doc in enumerate(docs):
             split_parts = text_splitter.split_text(doc)
@@ -126,7 +125,7 @@ class RagHandler:
         schema_info_list = []
 
         for doc, score in docs:
-            similarity_score = 1 / (1 + score)  # Normalize the score
+            similarity_score = 1 / (1 + score) 
             
             if similarity_score < similarity_threshold:
                 continue  
@@ -143,6 +142,8 @@ class RagHandler:
 
             schema_info_list.append(schema_info)
 
+        for schema_info in schema_info_list:
+            logger.table("Schema Information", schema_info)
         return schema_info_list
 
     def get_max_collection_counts(self):

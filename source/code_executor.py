@@ -56,6 +56,6 @@ class CodeExecutor:
             except Exception as e:
                 return f"Execution error: {str(e)}", False 
 
-    def save_mongo_cs(self, connection_string):
+    def save_mongo_cs_for_execute(self, connection_string):
         global CONNECTION_STRING
         CONNECTION_STRING = connection_string

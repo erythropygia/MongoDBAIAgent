@@ -1,6 +1,7 @@
 import os
 import json
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 import certifi
 from source.utils.logger import RichLogger
 
@@ -9,6 +10,14 @@ logger = RichLogger()
 class SchemaExtractor:
     def __init__(self):
         pass
+
+    def db_connection_check(self, connection_string):
+        try:
+            client = MongoClient(connection_string, serverSelectionTimeoutMS=3000)
+            client.admin.command('ping') 
+            return True
+        except ConnectionFailure:
+            return False
 
     def get_field_type(self, value):
         """MongoDB belgelerindeki veri tipini döndürür."""

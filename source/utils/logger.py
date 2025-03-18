@@ -49,10 +49,9 @@ class RichLogger:
             value = Prompt.ask(question, default=default, console=self.console)
             
             try:
-                # Girişi integer'a dönüştürme
                 value = int(value)
             except ValueError:
-                value = None  # Eğer dönüşüm yapılmazsa, None yap
+                value = None 
 
             if choices and value not in choices:
                 self.panel(

@@ -11,6 +11,10 @@ class GeminiProcess:
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
         self.GEMINI_TOKEN = config('GEMINI_KEY')
+        if not self.GEMINI_TOKEN: 
+            logger.panel("ERROR LOADING .ENV", "Missing 'GEMINI_KEY' in config file! Please check your configuration", style= "bold red")
+        else:
+            logger.panel("LOADING .ENV", "GEMINI_KEY INJECTED")
         self.SYSTEM_MESSAGE = self.prompts["system_message"]
         self.client = genai.Client(api_key=self.GEMINI_TOKEN)
         self.types = types

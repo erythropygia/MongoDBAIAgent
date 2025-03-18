@@ -1,7 +1,5 @@
-import os
-import sys
-import argparse
-import time
+import os, sys, time
+from decouple import config
 from source.generate_schemas import SchemaExtractor
 from source.rag import RagHandler
 from source.llm_pipeline import LLMPipeline
@@ -12,8 +10,14 @@ from source.utils.logger import RichLogger
 logger = RichLogger()
 
 class MongoAgent:
-    def __init__(self, connection_string, model_type):
-        self.connection_string = connection_string
+    def __init__(self, model_type):
+        self.connection_string = config('CONNECTION_STRING')
+        if not self.connection_string: 
+            logger.panel("ERROR LOADING .ENV", "Missing 'CONNECTION_STRING' in config file! Please check your configuration", style= "bold red")
+        else:
+            logger.panel("LOADING .ENV", "CONNECTION_STRING INJECTED")
+
+        
         self.model_type = model_type
         self.schema_extractor = SchemaExtractor()
         self.rag_handler = RagHandler()
@@ -31,6 +35,31 @@ class MongoAgent:
             if not os.path.exists(folder_path):
                 logger.panel("INFO", f"{folder} folder not found. Creating...", style="bold blue")
                 os.makedirs(folder_path)
+
+    def connection_check(self):
+        model_type_str = "Local Model (Qwen)" if self.model_type == 0 else "Gemini"
+        conn_result = self.schema_extractor.db_connection_check(self.connection_string)
+        
+        if conn_result:
+            logger.show_panel(
+                title="BUILD SCHEMA",
+                content=f"""
+                MongoDB Connection Status: [bold cyan]{conn_result}[/bold cyan]
+                Model Type: [bold cyan]{model_type_str}[/bold cyan]
+                """,
+                style="bold blue"
+            )
+
+        else:
+            logger.show_panel(
+                title="ERROR",
+                content=f"""
+                MongoDB connection failed! Please check your connection string[/bold cyan]
+                Model Type: [bold cyan]{model_type_str}[/bold cyan]
+                """,
+                style="bold blue"
+            )
+            return
 
     def initialize_schema(self):
         schema_file = "./mongo_schema/mongo_schema.json"
@@ -78,7 +107,8 @@ class MongoAgent:
 
 
     def run(self):
-        self.code_executor.save_mongo_cs(self.connection_string)
+        self.code_executor.save_mongo_cs_for_execute(self.connection_string)
+        self.connection_check()
 
         if self.model_type == 0:
             logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style= "bold yellow")
@@ -104,7 +134,6 @@ class MongoAgent:
 
 
 def main():
-
     version_info = {
         "Name": "Mongo Agent",
         "Version": "0.1.0",
@@ -112,34 +141,18 @@ def main():
     }
     logger.table("Information", version_info)
 
-    connection_string = logger.prompt_input(
-        question="Enter MongoDB Connection String"
-    )
-
     model_info = {
         "Local Model (Qwen)": 0,
         "Gemini": 1
     }
     logger.table("Model Type", model_info)
 
-
     model_type = logger.prompt_panel(
         question="Select Model Type (0 or 1)",
         choices=[0, 1]
     )
 
-    model_type_str = next((key for key, value in model_info.items() if value == model_type), "Model not found")
-
-    logger.show_panel(
-    title="BUILD SCHEMA",
-    content=f"""
-    Connection String: [bold cyan]{connection_string}[/bold cyan]
-    Model Type: [bold cyan]{model_type_str}[/bold cyan]
-    """,
-    style="bold blue"
-)
-
-    generator = MongoAgent(connection_string, model_type)
+    generator = MongoAgent(model_type)
     generator.run()
 
 

@@ -1,8 +1,15 @@
 import yaml
 import sys
 import os
-from llama_cpp import Llama
+from llama_cpp import Llama, llama_log_set
+import ctypes
 from transformers import AutoTokenizer
+
+def disable_verbose_llama_log(level, message, user_data):
+    pass
+
+log_callback = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p, ctypes.c_void_p)(disable_verbose_llama_log)
+llama_log_set(log_callback, ctypes.c_void_p())
 
 # Preventing parallelism warnings for tokenizers
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -16,7 +23,7 @@ class QwenProcess:
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
-        self.MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
+        self.MODEL_PATH = "model\qwen2.5-coder-3b-instruct-fp16.gguf"
         self.SYSTEM_MESSAGE = ""
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
@@ -30,10 +37,11 @@ class QwenProcess:
     def initialize_model(self):
         global LLM
         """Initialize the LLaMA model for Qwen"""
-        max_context_window = 32000
+        max_context_window = 32768
         LLM = Llama(model_path=self.MODEL_PATH,
-                         n_gpu_layers=100,
-                         n_ctx=max_context_window)
+                    n_gpu_layers=100,
+                    n_ctx=max_context_window,
+                    verbose=False)
 
     def _format_message(self, prompts):
         """Format the messages into a structure compatible with Qwen model"""
@@ -82,3 +90,7 @@ class QwenProcess:
             tokenize=False,
             add_generation_prompt=True
         )
+    
+    def my_log_callback(self, level, message, user_data):
+        pass
+

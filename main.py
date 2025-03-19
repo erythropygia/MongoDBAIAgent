@@ -84,7 +84,8 @@ class MongoAgent:
                         self.llm_pipeline.save_chat_history()
                         return
                     elif confirmation == "exit":
-                        sys.exit("\nExiting program. Goodbye!")
+                        logger.panel("EXIT", "Exiting program. Goodbye!", style="bold purple")
+                        sys.exit(1)
                     elif confirmation == "n":
                         break
                     else:
@@ -119,7 +120,8 @@ class MongoAgent:
 
             user_query = input("Enter your query (type 'exit' to quit): ").strip()
             if user_query.lower() == "exit":
-                sys.exit("\nExiting program. Goodbye!")
+                logger.panel("EXIT", "Exiting program. Goodbye!", style="bold purple")
+                sys.exit(1)
             self.process_query(user_query)
 
 

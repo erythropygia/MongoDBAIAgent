@@ -71,7 +71,7 @@ class QwenProcess:
         context = self._format_chat_template(prompts)
 
         stream = LLM(context,
-                          max_tokens=512,
+                          max_tokens=1024,
                           repeat_penalty=1.05,
                           temperature=0.8,
                           top_p=0.95,

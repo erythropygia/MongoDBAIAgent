@@ -102,5 +102,5 @@ class SchemaExtractor:
 
         logger.log("*************WARNING*************", style="bold red")
         logger.log("Please update the YAML document with descriptions and enums (e.g., see example/mongo_schema_doc.yaml), then delete the faiss_mongo_schema folder and run the script again", style="bold red")
-        logger.log("Default parameters using")
-        logger.log("*********************************")
+        logger.log("Default parameters using", style="bold red")
+        logger.log("*********************************", style="bold red")

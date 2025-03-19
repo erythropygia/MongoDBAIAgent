@@ -30,7 +30,7 @@ class QwenProcess:
             logger.panel("ERROR LOADING prompts.yaml", "Missing prompts.yaml in project folder! Please check your configuration.", style= "bold red")
             sys.exit(1)
 
-        self.MODEL_PATH = "model\qwen2.5-coder-3b-instruct-fp16.gguf"
+        self.MODEL_PATH = "model/R1unsloth.Q4_K_M.gguf"
         self.SYSTEM_MESSAGE = ""
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:

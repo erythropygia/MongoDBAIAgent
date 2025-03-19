@@ -143,7 +143,9 @@ class RagHandler:
 
         for schema_info in schema_info_list:
             logger.table("Found Schema Information", schema_info)
-        return schema_info_list
+        
+        formatted_schema = json.dumps(schema_info_list, indent=4, ensure_ascii=False)
+        return formatted_schema
 
     def get_max_collection_counts(self):
         try:

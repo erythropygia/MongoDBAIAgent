@@ -10,139 +10,66 @@ class LLMPipeline:
     def __init__(self, model_type):
         self.conservations = []
         self.code_executor = CodeExecutor()
+        self.model_type = model_type  # 0: Qwen, 1: Gemini
+
         if model_type == 0:
-            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style= "bold yellow")
-            self.qwen_process = QwenProcess()
-            self.qwen_process.initialize_model()
+            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style="bold yellow")
+            self.model_process = QwenProcess()
+            self.model_process.initialize_model()
         else:
-            self.gemini_process = GeminiProcess()
+            self.model_process = GeminiProcess()
 
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
-    def generate(self, method, first_user_query, schema, repaired_query, is_first=False):
+    def generate(self, query, schema=None, retry_reason=None, is_first=True):
         try_count = 0
         if is_first:
-            self.conservations = []
+            self.conservations = [] 
 
         logger.log("Generating Query...")
 
-        if method == 0:
-            prompt = self.prompts["generate_mongo_query_qwen"].format(schema=schema, user_query=first_user_query)
-            self.conservations.append({'role': "user", "content": prompt})
+        if is_first:
+            prompt_key = "generate_mongo_query_qwen" if self.model_type == 0 else "generate_mongo_query_gemini"
+            prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
+        else:
+            prompt = retry_reason
 
-            response = self.qwen_process.generate_local(self.conservations, new_chat=True)
-            self.conservations.append({'role': "assistant", "content": response})
+        self.conservations.append({'role': "user", "content": prompt})
 
-            while try_count < 3:
-                result, is_successful = self.code_executor.execute_generated_code(response)
+        if self.model_type == 0:
+            response = self.model_process.generate_local(self.conservations, new_chat=is_first)
+        else:
+            response = self.model_process.generate_gemini(self.conservations, new_chat=is_first)
 
-                if is_successful:
-                    return result
+        self.conservations.append({'role': "assistant", "content": response})
+
+        while try_count < 3:
+            result, is_successful = self.code_executor.execute_generated_code(response)
+
+            if is_successful:
+                return result
+            else:
+                logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
+                self.conservations.append({'role': "user", "content": result})
+
+                if self.model_type == 0:
+                    response = self.model_process.generate_local(self.conservations, new_chat=False)
                 else:
-                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
-                    self.conservations.append({'role': "user", "content": result})
-                    response = self.qwen_process.generate_local(self.conservations)
-                    result, is_successful = self.code_executor.execute_generated_code(response)
-                    self.conservations.append({'role': "assistant", "content": response})
+                    response = self.model_process.generate_gemini(self.conservations, new_chat=False)
 
-                    if is_successful:
-                        return result
-                    else:
-                        try_count += 1
-                        continue
-
-            if not is_successful:
-                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
-                return None
-
-        elif method == 1:  # Gemini process for method 1
-            prompt = self.prompts["generate_mongo_query_gemini"].format(schema=schema, user_query=first_user_query)
-            self.conservations.append({'role': "user", "content": prompt})
-
-            response = self.gemini_process.generate_gemini(self.conservations, new_chat=True)
-            self.conservations.append({'role': "assistant", "content": response})
-
-            while try_count < 3:
-                result, is_successful = self.code_executor.execute_generated_code(response)
-
-                if is_successful:
-                    return result
-                else:
-                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
-                    self.conservations.append({'role': "user", "content": result})
-                    response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
-                    result, is_successful = self.code_executor.execute_generated_code(response)
-                    self.conservations.append({'role': "assistant", "content": response})
-
-                    if is_successful:
-                        return result
-                    else:
-                        try_count += 1
-                        continue
-
-            if not is_successful:
-                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
-                return None
-
-        # Handling methods for repaired query
-        elif method == 2:
-            self.conservations.append({'role': "user", "content": repaired_query})
-            response = self.qwen_process.generate_local(self.conservations, new_chat=False)
-
-            while try_count < 3:
-                result, is_successful = self.code_executor.execute_generated_code(response)
                 self.conservations.append({'role': "assistant", "content": response})
 
-                if is_successful:
-                    return result
-                else:
-                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
-                    self.conservations.append({'role': "user", "content": result})
-                    response = self.qwen_process.generate_local(self.conservations, new_chat=False)
-                    self.conservations.append({'role': "assistant", "content": response})
-
-                    result, is_successful = self.code_executor.execute_generated_code(response)
-
-                    if is_successful:
-                        return result
-                    else:
-                        self.conservations.append({'role': "user", "content": result})
-                        try_count += 1
-                        continue
-
-            if not is_successful:
-                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
-                return None
-
-        elif method == 3:
-            self.conservations.append({'role': "user", "content": repaired_query})
-            response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
-
-            while try_count < 3:
                 result, is_successful = self.code_executor.execute_generated_code(response)
-                self.conservations.append({'role': "assistant", "content": response})
 
                 if is_successful:
                     return result
                 else:
-                    logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
-                    self.conservations.append({'role': "user", "content": result})
-                    response = self.gemini_process.generate_gemini(self.conservations, new_chat=False)
-                    self.conservations.append({'role': "assistant", "content": response})
+                    try_count += 1
+                    continue
 
-                    result, is_successful = self.code_executor.execute_generated_code(response)
-
-                    if is_successful:
-                        return result
-                    else:
-                        self.conservations.append({'role': "user", "content": result})
-                        try_count += 1
-                        continue
-
-            if not is_successful:
-                logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
-                return None
+        logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
+        return None
 
     def save_chat_history(self):
         if(len(self.conservations)) != 0:

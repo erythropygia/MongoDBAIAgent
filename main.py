@@ -4,7 +4,6 @@ from source.generate_schemas import SchemaExtractor
 from source.rag import RagHandler
 from source.llm_pipeline import LLMPipeline
 from source.code_executor import CodeExecutor
-from source.process.qwen_process import QwenProcess
 from source.utils.logger import RichLogger
 
 logger = RichLogger()
@@ -74,7 +73,7 @@ class MongoAgent:
             logger.panel("RESULT", "No suitable schema found. Please try again.", style="bold red")
             return
 
-        response = self.llm_pipeline.generate(self.model_type, query, schema_data, None, True)
+        response = self.llm_pipeline.generate(query, schema_data, None, True)
         if response is not None:
             logger.panel("EXECUTING RESULT", response, style= "bold green")
             for i in range(1, 3):
@@ -94,13 +93,11 @@ class MongoAgent:
 
                 retry_reason = input("\nWhat was incorrect? Please describe the issue: ").strip()
 
-                if self.model_type == 0:
-                    self.model_type = 2
-                elif self.model_type == 1:
-                    self.model_type = 3
-
-                response = self.llm_pipeline.generate(self.model_type, query, schema_data, retry_reason, False)
-                logger.panel("EXECUTING RESULT",response, style= "bold green")
+                response = self.llm_pipeline.generate(query, schema_data, retry_reason, is_first = False)
+                if response is not None:
+                    logger.panel("EXECUTING RESULT",response, style= "bold green")
+                else:
+                    logger.panel("NEW REQUEST", "Request process terminated transitioning to a new one", style= "bold green")
 
 
     def run(self):

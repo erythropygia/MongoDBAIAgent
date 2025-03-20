@@ -79,6 +79,7 @@ class QwenProcess:
                           stream=True)
 
         assistant_message = ""
+        print("Agent: \n")
         for output in stream:
             token_text = output["choices"][0]["text"]
             print(token_text, end="", flush=True)

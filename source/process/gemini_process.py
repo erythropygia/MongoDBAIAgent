@@ -48,7 +48,7 @@ class GeminiProcess:
             prompt = self._format_message(prompts)
             response = self.chat.send_message(prompt.strip())
             # Replace streaming prints with formatted log output
-            logger.log("Agent: " + response.text)
+            logger.log("Agent: \n\n " + response.text, style="white")
             return response.text
         except Exception as e:
             logger.panel("GEMINI PROCESS ERROR", f"{repr(e)}")

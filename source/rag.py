@@ -107,36 +107,45 @@ class RagHandler:
         logger.log("Schema successfully loaded into FAISS.\n")
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    def get_relevant_schema(self, user_query, similarity_threshold=0.55):
-        logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style= "bold yellow")
+    def get_relevant_schema(self, user_query, similarity_threshold=0.4):
+        logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style="bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:
             self.MAX_COLLECTION_COUNTS = self.get_max_collection_counts()
             if self.MAX_COLLECTION_COUNTS == 0:
                 logger.log("ERROR: Maximum collection count not found. Please check the YAML schema file.", style="bold red")
                 sys.exit(1)
-        
+
         docs = self.FAISS_DB.similarity_search_with_score(user_query, k=self.MAX_COLLECTION_COUNTS)
 
         if not docs:
             return []
 
         schema_info_list = []
+        seen_collections = set()  # Aynı koleksiyonu tekrar önermemek için set kullanıyoruz.
 
         for doc, score in docs:
-            similarity_score = 1 / (1 + score) 
+            similarity_score = 1 / (1 + score)  
             
             if similarity_score < similarity_threshold:
                 continue  
 
+            db_name = doc.metadata.get("DBName", "")
+            collection_name = doc.metadata.get("Collection", "")
+
+            if (db_name, collection_name) in seen_collections:
+                continue
+            
+            seen_collections.add((db_name, collection_name)) 
+
             schema_info = {
-                "DBName": doc.metadata.get("DBName", ""), 
-                "Collection": doc.metadata.get("Collection", ""),
+                "DBName": db_name, 
+                "Collection": collection_name,
                 "Description": doc.metadata.get("Description", ""),
                 "Enums": doc.metadata.get("Enums", "None"), 
                 "EnumsDescription": doc.metadata.get("EnumsDescription", None),
-                "Schema": self.get_mongo_schema(doc.metadata.get("DBName", ""), doc.metadata.get("Collection", "")),
-                "SimilarityScore": similarity_score 
+                "Schema": self.get_mongo_schema(db_name, collection_name),
+                "SimilarityScore": similarity_score
             }
 
             schema_info_list.append(schema_info)
@@ -145,7 +154,7 @@ class RagHandler:
             logger.table("Found Schema Information", schema_info)
         
         return schema_info_list
-
+    
     def get_max_collection_counts(self):
         try:
             with open(self.SCHEMA_DOC_FILE, 'r', encoding='utf-8') as file:

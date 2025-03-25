@@ -9,6 +9,7 @@ logger = RichLogger()
 class LLMPipeline:
     def __init__(self, model_type):
         self.conservations = []
+        self.schema_conservations = []
         self.code_executor = CodeExecutor()
         self.model_type = model_type  # 0: Qwen, 1: Gemini
 
@@ -21,6 +22,20 @@ class LLMPipeline:
 
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
+
+    def check_found_schema(self, query, schema=None):
+
+        prompt_key = "check_schema"
+        prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
+        self.schema_conservations.append({'role': "user", "content": prompt})
+
+        if self.model_type == 0:
+            response = self.model_process.generate_local(self.schema_conservations, new_chat=True)
+        else:
+            response = self.model_process.generate_gemini(self.schema_conservations, new_chat=True)
+
+        self.schema_conservations.append({'role': "assistant", "content": response})
+        return response
 
     def generate(self, query, schema=None, retry_reason=None, is_first=True):
         try_count = 0
@@ -70,7 +85,7 @@ class LLMPipeline:
 
         logger.log("\nCode execution attempts failed. Please try again.\n", style="bold red")
         return None
-
+    
     def save_chat_history(self):
         if(len(self.conservations)) != 0:
             folder_path = "chat_history"
@@ -80,3 +95,13 @@ class LLMPipeline:
                 file.write(json.dumps(self.conservations, ensure_ascii=False) + "\n")
             
             self.conservations = []
+    
+    def save_schema_history(self):
+        if(len(self.schema_conservations)) != 0:
+            folder_path = "chat_history"
+            file_path = os.path.join(folder_path, "schema_history.jsonl")
+
+            with open(file_path, "a", encoding="utf-8") as file:
+                file.write(json.dumps(self.schema_conservations, ensure_ascii=False) + "\n")
+            
+            self.schema_conservations = []

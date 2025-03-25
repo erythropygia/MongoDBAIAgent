@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, json, re
 from decouple import config
 from source.generate_schemas import SchemaExtractor
 from source.rag import RagHandler
@@ -67,13 +67,46 @@ class MongoAgent:
         else:
             logger.panel("INFO", "Database schema file found. Loading schema...", style="bold blue")
 
+    def extract_json_blocks(self, text):
+        if not isinstance(text, str):
+            return None
+        
+        results = []
+        json_blocks = re.findall(r'```json\s*([\s\S]*?)\s*```', text)
+        
+        for block in json_blocks:
+            try:
+                cleaned_block = block.strip()
+                if cleaned_block:
+                    parsed = json.loads(cleaned_block)
+                    if isinstance(parsed, (list, dict)):
+                        results.append(parsed)
+            except json.JSONDecodeError as e:
+                return None
+            except Exception as e:
+                return None
+        
+        return results
+
     def process_query(self, query):
+
         schema_data = self.rag_handler.get_relevant_schema(query)
+
         if not schema_data:
             logger.panel("RESULT", "No suitable schema found. Please try again.", style="bold red")
             return
+        
+        found_schemas = self.llm_pipeline.check_found_schema(query, schema_data)
 
-        response = self.llm_pipeline.generate(query, schema_data, None, True)
+        if found_schemas:
+            final_schemas =  self.extract_json_blocks(found_schemas)
+        else:
+            logger.panel("SCHEMA RESULT", "LLM failed to generate correct schema, proceeding from RAG output", style="bold red")
+            final_schemas = schema_data
+        
+        self.llm_pipeline.save_schema_history()
+
+        response = self.llm_pipeline.generate(query, final_schemas, None, True)
         if response is not None:
             logger.panel("EXECUTING RESULT", response, style= "bold green")
             for i in range(1, 3):
@@ -98,7 +131,6 @@ class MongoAgent:
                     logger.panel("EXECUTING RESULT",response, style= "bold green")
                 else:
                     logger.panel("NEW REQUEST", "Request process terminated transitioning to a new one", style= "bold green")
-
 
     def run(self):
         self.code_executor.save_mongo_cs_for_execute(self.connection_string)

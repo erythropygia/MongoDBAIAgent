@@ -47,7 +47,7 @@ class RagHandler:
 
         logger.log("YAML Data Loaded")
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=20)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         docs = []
@@ -107,7 +107,7 @@ class RagHandler:
         logger.log("Schema successfully loaded into FAISS.\n")
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    def get_relevant_schema(self, user_query, similarity_threshold=0.4):
+    def get_relevant_schema(self, user_query, similarity_threshold=0.40):
         logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style="bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:
@@ -122,7 +122,7 @@ class RagHandler:
             return []
 
         schema_info_list = []
-        seen_collections = set()  # Aynı koleksiyonu tekrar önermemek için set kullanıyoruz.
+        seen_collections = set() 
 
         for doc, score in docs:
             similarity_score = 1 / (1 + score)  
@@ -141,11 +141,9 @@ class RagHandler:
             schema_info = {
                 "DBName": db_name, 
                 "Collection": collection_name,
-                "Description": doc.metadata.get("Description", ""),
                 "Enums": doc.metadata.get("Enums", "None"), 
                 "EnumsDescription": doc.metadata.get("EnumsDescription", None),
                 "Schema": self.get_mongo_schema(db_name, collection_name),
-                "SimilarityScore": similarity_score
             }
 
             schema_info_list.append(schema_info)

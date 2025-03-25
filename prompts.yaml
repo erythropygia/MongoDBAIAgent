@@ -75,3 +75,25 @@ generate_mongo_query_gemini: |
   
   Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
 
+
+check_schema: |
+  **({user_query})** sorgusunu gerçekleştirmek için gerekli olan db name ve collection bilgilerini aşağıdaki şemadan seç ve istenen formatta cevap ver:
+
+  {schema}
+
+  **‼️ DİKKAT: Cevabın yalnızca aşağıdaki formatta JSON verisi içermesi ve kullanıcı sorgusuyla ilişkili tüm veritabanı bilgilerini eksiksiz kapsaması gerekmektedir. **
+  ```json
+  [
+    {{
+      "DBName": "db_name1",
+      "Collection": "collection_name1",
+      "Enums": "enums1",
+      "EnumsDescription": "enumsdescription1",
+      "Schema": "schema1"
+    }},
+    ...
+  ]
+  ```
+
+
+

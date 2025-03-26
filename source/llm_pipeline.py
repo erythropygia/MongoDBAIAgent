@@ -25,7 +25,11 @@ class LLMPipeline:
 
     def check_found_schema(self, query, schema=None):
 
-        prompt_key = "check_schema"
+        if self.model_type == 0:
+            prompt_key = "check_schema_qwen"
+        elif self.model_type == 1:
+            prompt_key = "check_schema_gemini"
+            
         prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
         self.schema_conservations.append({'role': "user", "content": prompt})
 

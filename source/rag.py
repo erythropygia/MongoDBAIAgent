@@ -107,7 +107,7 @@ class RagHandler:
         logger.log("Schema successfully loaded into FAISS.\n")
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    def get_relevant_schema(self, user_query, similarity_threshold=0.40):
+    def get_relevant_schema(self, user_query, similarity_threshold=0.5):
         logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style="bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:

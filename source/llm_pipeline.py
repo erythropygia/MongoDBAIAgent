@@ -1,6 +1,7 @@
 import subprocess, time, re, os, yaml, sys, json
 from source.process.qwen_process import QwenProcess
 from source.process.gemini_process import GeminiProcess
+from source.process.gemma_process import GemmaProcess
 from source.code_executor import CodeExecutor
 from source.utils.logger import RichLogger
 
@@ -11,22 +12,26 @@ class LLMPipeline:
         self.conservations = []
         self.schema_conservations = []
         self.code_executor = CodeExecutor()
-        self.model_type = model_type  # 0: Qwen, 1: Gemini
+        self.model_type = model_type  # 0: Qwen, 1: Gemini 2: Gemma3
 
         if model_type == 0:
-            logger.panel("BUILD MODEL", "Selected Query Type: Local Model. Building the local model...", style="bold yellow")
+            logger.panel("BUILD MODEL", "Selected Query Type: Local Qwen model. Building the local model...", style="bold yellow")
             self.model_process = QwenProcess()
             self.model_process.initialize_model()
-        else:
+        elif model_type == 1:
             self.model_process = GeminiProcess()
+        elif model_type == 2:
+            logger.panel("BUILD MODEL", "Selected Query Type: Local Gemma3 model. Building the local model...", style="bold yellow")
+            self.model_process = GemmaProcess()
+            self.model_process.initialize_model()
 
         with open("prompts.yaml", "r", encoding="utf-8") as file:
             self.prompts = yaml.safe_load(file)
 
     def check_found_schema(self, query, schema=None):
 
-        if self.model_type == 0:
-            prompt_key = "check_schema_qwen"
+        if self.model_type == 0 or self.model_type == 2:
+            prompt_key = "check_schema_local"
         elif self.model_type == 1:
             prompt_key = "check_schema_gemini"
             
@@ -34,9 +39,11 @@ class LLMPipeline:
         self.schema_conservations.append({'role': "user", "content": prompt})
 
         if self.model_type == 0:
-            response = self.model_process.generate_local(self.schema_conservations, new_chat=True)
-        else:
+            response = self.model_process.generate_qwen(self.schema_conservations, new_chat=True)
+        elif self.model_type == 1:
             response = self.model_process.generate_gemini(self.schema_conservations, new_chat=True)
+        elif self.model_type == 2:
+            response = self.model_process.generate_gemma(self.schema_conservations, new_chat=True)
 
         self.schema_conservations.append({'role': "assistant", "content": response})
         return response
@@ -49,7 +56,7 @@ class LLMPipeline:
         logger.log("Generating Query...")
 
         if is_first:
-            prompt_key = "generate_mongo_query_qwen" if self.model_type == 0 else "generate_mongo_query_gemini"
+            prompt_key = "generate_mongo_query_local" if self.model_type == 0 else "generate_mongo_query_gemini"
             prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
         else:
             prompt = retry_reason
@@ -57,9 +64,11 @@ class LLMPipeline:
         self.conservations.append({'role': "user", "content": prompt})
 
         if self.model_type == 0:
-            response = self.model_process.generate_local(self.conservations, new_chat=is_first)
-        else:
+            response = self.model_process.generate_qwen(self.conservations, new_chat=is_first)
+        elif self.model_type == 1:
             response = self.model_process.generate_gemini(self.conservations, new_chat=is_first)
+        elif self.model_type == 2:
+            response = self.model_process.generate_gemma(self.conservations, new_chat=is_first)
 
         self.conservations.append({'role': "assistant", "content": response})
 
@@ -73,9 +82,11 @@ class LLMPipeline:
                 self.conservations.append({'role': "user", "content": result})
 
                 if self.model_type == 0:
-                    response = self.model_process.generate_local(self.conservations, new_chat=False)
-                else:
+                    response = self.model_process.generate_qwen(self.conservations, new_chat=False)
+                elif self.model_type == 1:
                     response = self.model_process.generate_gemini(self.conservations, new_chat=False)
+                elif self.model_type == 2:
+                    response = self.model_process.generate_gemma(self.conservations, new_chat=False)
 
                 self.conservations.append({'role': "assistant", "content": response})
 

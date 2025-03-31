@@ -34,7 +34,12 @@ class MongoAgent:
                 os.makedirs(folder_path)
 
     def connection_check(self):
-        model_type_str = "Local Model (Qwen)" if self.model_type == 0 else "Gemini"
+        model_type_str = (
+            "Local Model (Qwen)" if self.model_type == 0 else
+            "Gemini" if self.model_type == 1 else
+            "Local Model (Gemma3)" if self.model_type == 2 else
+            "Unknown"
+        )
         conn_result = self.schema_extractor.db_connection_check(self.connection_string)
         
         if conn_result:
@@ -164,13 +169,14 @@ def main():
 
     model_info = {
         "Local Model (Qwen)": 0,
-        "Gemini": 1
+        "Gemini": 1,
+        "Local Model (Gemma3)": 2
     }
     logger.table("Model Type", model_info)
 
     model_type = logger.prompt_panel(
-        question="Select Model Type (0 or 1)",
-        choices=[0, 1]
+        question="Select Model Type (0, 1 or 2)",
+        choices=[0, 1, 2]
     )
 
     generator = MongoAgent(model_type)

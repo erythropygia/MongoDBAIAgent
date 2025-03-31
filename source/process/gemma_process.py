@@ -18,9 +18,9 @@ llama_log_set(log_callback, ctypes.c_void_p())
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 LLM = None
-TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
+TOKENIZER = AutoTokenizer.from_pretrained("erythropygia/Gemma-3-1b-it-OpenR1-Turkish")
 
-class QwenProcess:
+class GemmaProcess:
     def __init__(self):
         # Load prompts from YAML file
         try:
@@ -30,16 +30,16 @@ class QwenProcess:
             logger.panel("ERROR LOADING prompts.yaml", "Missing prompts.yaml in project folder! Please check your configuration.", style= "bold red")
             sys.exit(1)
 
-        self.MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
+        self.MODEL_PATH = "model/gemma3_r1.gguf"
         self.SYSTEM_MESSAGE = ""
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
-            self.SYSTEM_MESSAGE = self.prompts["system_message_r1"]
-            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message_short_r1"]
+            self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["short_system_message_with_user_request"]
 
         else:
-            self.SYSTEM_MESSAGE = self.prompts["system_message"]
-            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message"]
+            self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message_with_user_request"]
 
     def initialize_model(self):
         global LLM
@@ -59,23 +59,23 @@ class QwenProcess:
                 break
         return last_user_message
 
-    def generate_qwen(self, prompts, new_chat=False):
+    def generate_gemma(self, prompts, new_chat=False):
         """Generate a response using the Qwen model based on input prompts"""
         global LLM
 
         if new_chat:
-            prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE})
+            prompts.insert(0, {'role': "user", "content": self.SYSTEM_MESSAGE})
         else:
-            prompts.insert(len(prompts) - 1, {'role': "system", "content": self.SYSTEM_MESSAGE_SHORT})
+            prompts.insert(len(prompts) - 1, {'role': "user", "content": self.SYSTEM_MESSAGE_SHORT})
 
         context = self._format_chat_template(prompts)
 
         stream = LLM(context,
                           max_tokens=1024,
                           repeat_penalty=1.05,
-                          temperature=0.8,
+                          temperature=1.0,
                           top_p=0.95,
-                          stop=["<|im_end|>"],
+                          top_k=128,
                           stream=True)
 
         assistant_message = ""
@@ -92,6 +92,7 @@ class QwenProcess:
 
     def _format_chat_template(self, prompts):
         """Format the chat prompts using the tokenizer"""
+        print(prompts)
         global TOKENIZER
         return TOKENIZER.apply_chat_template(
             prompts,

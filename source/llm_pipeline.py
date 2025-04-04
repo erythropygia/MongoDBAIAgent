@@ -30,9 +30,13 @@ class LLMPipeline:
 
     def check_found_schema(self, query, schema=None):
 
-        if self.model_type == 0 or self.model_type == 2:
-            prompt_key = "check_schema_local"
+        if self.model_type == 0:
+            prompt_key = "check_schema_local_r1"
         elif self.model_type == 1:
+            prompt_key = "check_schema_gemini"
+        elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-R1":
+            prompt_key = "check_schema_local_r1"
+        elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-Base":
             prompt_key = "check_schema_gemini"
             
         prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
@@ -60,7 +64,9 @@ class LLMPipeline:
                 prompt_key = "generate_mongo_query_local"
             elif self.model_type == 1:
                 prompt_key = "generate_mongo_query_gemini"
-            elif self.model_type == 2:
+            elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-R1":
+                prompt_key = "system_message_with_user_request_r1"
+            elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-Base":
                 prompt_key = "system_message_with_user_request"
 
             prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)

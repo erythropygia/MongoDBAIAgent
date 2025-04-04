@@ -32,6 +32,14 @@ class GemmaProcess:
 
         self.MODEL_PATH = "model/gemma3_r1.gguf"
 
+        if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
+            self.SYSTEM_MESSAGE = self.prompts["system_message_r1"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message_short_r1"]
+
+        else:
+            self.SYSTEM_MESSAGE = self.prompts["system_message"]
+            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message"]
+
     def initialize_model(self):
         global LLM
         """Initialize the LLaMA model for Gemma3"""
@@ -88,3 +96,8 @@ class GemmaProcess:
     def my_log_callback(self, level, message, user_data):
         pass
 
+    def get_model_type(self):
+        if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
+            return "Gemma3-R1"
+        else:
+            return "Gemma3-Base"

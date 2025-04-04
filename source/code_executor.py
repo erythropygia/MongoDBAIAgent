@@ -31,30 +31,65 @@ class CodeExecutor:
 
         if status == False:
             return "Script execution failed. Reason: Python script was not found in response's ```python ``` structure.", False 
-        else:
-            random_str = ''.join(random.choices(string.ascii_lowercase, k=5))
-            unique_file_name = f"generated_scripts/generated_mongo_query_{int(time.time())}_{random_str}.py"
+        
+        random_str = ''.join(random.choices(string.ascii_lowercase, k=5))
+        unique_file_name = f"generated_scripts/generated_mongo_query_{int(time.time())}_{random_str}.py"
 
-            
-            with open(unique_file_name, "w", encoding="utf-8") as f:
-                f.write(script)
+        # Kullanıcının kodunu try-except bloğuna saran yeni kod yapısı
+        wrapped_script = f"""
+    import sys
+    import traceback
 
-            try:
-                script_dir = os.path.dirname(os.path.abspath(unique_file_name))
-                python_cmd = "python" if sys.platform.startswith("win") else "python3"
-                result = subprocess.run([python_cmd, unique_file_name], capture_output=True, text=True, timeout=60)
+    try:
+    {script}
+        print("SCRIPT_EXECUTION_SUCCESS")  # Başarıyla tamamlandı mesajı
+    except Exception as e:
+        print("Handled Exception:", str(e), file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)  # Hata olduğunu belirtmek için exit code 1
+    """
 
-                if result.returncode != 0:
-                    error_message = f"Script execution failed with exit code: {result.returncode}. Error details:\n{result.stderr.strip()}"
-                    return error_message, False 
+        with open(unique_file_name, "w", encoding="utf-8") as f:
+            f.write(wrapped_script)
+
+        try:
+            script_dir = os.path.dirname(os.path.abspath(unique_file_name))
+            python_cmd = "python" if sys.platform.startswith("win") else "python3"
+            result = subprocess.run(
+                [python_cmd, unique_file_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=60
+            )
+
+            stdout_output = result.stdout.strip()
+            stderr_output = result.stderr.strip()
+
+            if result.returncode != 0:
+                error_message = (
+                    f"Script execution failed with exit code {result.returncode}.\n"
+                    f"STDOUT:\n{stdout_output}\n\n"
+                    f"STDERR:\n{stderr_output}"
+                )
+                return error_message, False  
+            else:
+                # SCRIPT_EXECUTION_SUCCESS mesajı var mı kontrol edelim
+                if "SCRIPT_EXECUTION_SUCCESS" in stdout_output:
+                    return stdout_output.replace("SCRIPT_EXECUTION_SUCCESS", "").strip(), True  
                 else:
-                    return result.stdout.strip(), True  
+                    return (
+                        f"Script executed, but success confirmation was not found.\n"
+                        f"STDOUT:\n{stdout_output}\n\n"
+                        f"STDERR:\n{stderr_output}",
+                        False
+                    )
 
-            except subprocess.TimeoutExpired:
-                return "Query execution timed out!", False  
+        except subprocess.TimeoutExpired:
+            return "Query execution timed out!", False  
 
-            except Exception as e:
-                return f"Execution error: {str(e)}", False 
+        except Exception as e:
+            return f"Execution error: {str(e)}", False  
 
     def save_mongo_cs_for_execute(self, connection_string):
         global CONNECTION_STRING

@@ -35,15 +35,12 @@ class GemmaProcess:
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
             self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
-            self.SYSTEM_MESSAGE_SHORT = self.prompts["short_system_message_with_user_request"]
-
         else:
             self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
-            self.SYSTEM_MESSAGE_SHORT = self.prompts["system_message_with_user_request"]
 
     def initialize_model(self):
         global LLM
-        """Initialize the LLaMA model for Qwen"""
+        """Initialize the LLaMA model for Gemma3"""
         max_context_window = 32768
         LLM = Llama(model_path=self.MODEL_PATH,
                     n_gpu_layers=100,
@@ -51,7 +48,7 @@ class GemmaProcess:
                     verbose=False)
 
     def _format_message(self, prompts):
-        """Format the messages into a structure compatible with Qwen model"""
+        """Format the messages into a structure compatible with Gemma3 model"""
         last_user_message = None
         for message in reversed(prompts):
             if message['role'] == 'user':
@@ -62,11 +59,6 @@ class GemmaProcess:
     def generate_gemma(self, prompts, new_chat=False):
         """Generate a response using the Qwen model based on input prompts"""
         global LLM
-
-        if new_chat:
-            prompts.insert(0, {'role': "user", "content": self.SYSTEM_MESSAGE})
-        else:
-            prompts.insert(len(prompts) - 1, {'role': "user", "content": self.SYSTEM_MESSAGE_SHORT})
 
         context = self._format_chat_template(prompts)
 
@@ -92,7 +84,6 @@ class GemmaProcess:
 
     def _format_chat_template(self, prompts):
         """Format the chat prompts using the tokenizer"""
-        print(prompts)
         global TOKENIZER
         return TOKENIZER.apply_chat_template(
             prompts,

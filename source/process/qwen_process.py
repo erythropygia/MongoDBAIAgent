@@ -64,9 +64,9 @@ class QwenProcess:
         global LLM
 
         if new_chat:
-            prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE})
+            prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE, 'model_type': 0})
         else:
-            prompts.insert(len(prompts) - 1, {'role': "system", "content": self.SYSTEM_MESSAGE_SHORT})
+            prompts.insert(len(prompts) - 1, {'role': "system", "content": self.SYSTEM_MESSAGE_SHORT, 'model_type': 0})
 
         context = self._format_chat_template(prompts)
 

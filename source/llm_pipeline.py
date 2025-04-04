@@ -36,7 +36,7 @@ class LLMPipeline:
             prompt_key = "check_schema_gemini"
             
         prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
-        self.schema_conservations.append({'role': "user", "content": prompt})
+        self.schema_conservations.append({'role': "user", "content": prompt, 'model_type': self.model_type})
 
         if self.model_type == 0:
             response = self.model_process.generate_qwen(self.schema_conservations, new_chat=True)
@@ -45,7 +45,7 @@ class LLMPipeline:
         elif self.model_type == 2:
             response = self.model_process.generate_gemma(self.schema_conservations, new_chat=True)
 
-        self.schema_conservations.append({'role': "assistant", "content": response})
+        self.schema_conservations.append({'role': "assistant", "content": response, 'model_type': self.model_type})
         return response
 
     def generate(self, query, schema=None, retry_reason=None, is_first=True):
@@ -56,12 +56,18 @@ class LLMPipeline:
         logger.log("Generating Query...")
 
         if is_first:
-            prompt_key = "generate_mongo_query_local" if self.model_type == 0 else "generate_mongo_query_gemini"
+            if self.model_type == 0:
+                prompt_key = "generate_mongo_query_local"
+            elif self.model_type == 1:
+                prompt_key = "generate_mongo_query_gemini"
+            elif self.model_type == 2:
+                prompt_key = "system_message_with_user_request"
+
             prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
         else:
             prompt = retry_reason
 
-        self.conservations.append({'role': "user", "content": prompt})
+        self.conservations.append({'role': "user", "content": prompt, 'model_type': self.model_type})
 
         if self.model_type == 0:
             response = self.model_process.generate_qwen(self.conservations, new_chat=is_first)
@@ -70,7 +76,7 @@ class LLMPipeline:
         elif self.model_type == 2:
             response = self.model_process.generate_gemma(self.conservations, new_chat=is_first)
 
-        self.conservations.append({'role': "assistant", "content": response})
+        self.conservations.append({'role': "assistant", "content": response, 'model_type': self.model_type})
 
         while try_count < 3:
             result, is_successful = self.code_executor.execute_generated_code(response)
@@ -79,7 +85,7 @@ class LLMPipeline:
                 return result
             else:
                 logger.log(f"Code execution failed. Trying again {try_count + 1}", style="bold yellow")
-                self.conservations.append({'role': "user", "content": result})
+                self.conservations.append({'role': "user", "content": result, 'model_type': self.model_type})
 
                 if self.model_type == 0:
                     response = self.model_process.generate_qwen(self.conservations, new_chat=False)
@@ -88,7 +94,7 @@ class LLMPipeline:
                 elif self.model_type == 2:
                     response = self.model_process.generate_gemma(self.conservations, new_chat=False)
 
-                self.conservations.append({'role': "assistant", "content": response})
+                self.conservations.append({'role': "assistant", "content": response, 'model_type': self.model_type})
 
                 result, is_successful = self.code_executor.execute_generated_code(response)
 

@@ -43,7 +43,7 @@ class GeminiProcess:
     def generate_gemini(self, prompts, new_chat=False):
         try:
             if new_chat:
-                prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE})
+                prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE, 'model_type': 1})
                 self.start_new_chat()
             prompt = self._format_message(prompts)
             response = self.chat.send_message(prompt.strip())

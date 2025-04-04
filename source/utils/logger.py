@@ -4,6 +4,8 @@ from rich.text import Text
 from rich.panel import Panel
 from rich.live import Live
 from rich.prompt import Prompt, IntPrompt, Confirm
+from rich.table import Table
+
 from typing import Union, Optional, List, Dict
 
 
@@ -23,18 +25,33 @@ class RichLogger:
         panel = Panel(content, title=title, title_align="left", border_style=style)
         self.console.print(panel)
     
-    def table(self, title, data_dict):
+    def table(self, title, data):
         from rich.table import Table
 
         table = Table(title=title, show_header=True, header_style="bold magenta")
-        table.add_column("Key", style="cyan", width=20)
-        table.add_column("Value", style="green")
 
-        for key, value in data_dict.items():
-            table.add_row(key, str(value))
+        if isinstance(data, dict):
+            # Tek bir dict ise basit key-value tablosu
+            table.add_column("Key", style="cyan", width=20)
+            table.add_column("Value", style="green")
+            for key, value in data.items():
+                table.add_row(str(key), str(value))
+        elif isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            # Liste içindeki tüm dict'lerin key'lerini topla
+            keys = list({k for row in data for k in row.keys()})
+
+            table.add_column("No", style="bold yellow", justify="right")  # sıra numarası kolonu
+            for key in keys:
+                table.add_column(str(key), style="cyan")
+
+            for idx, row in enumerate(data, start=1):
+                row_values = [str(row.get(key, "")) for key in keys]
+                table.add_row(str(idx), *row_values)
+        else:
+            self.console.print("[red]ERROR: Invalid data format for table. Must be dict or list of dicts.")
+            return
 
         self.console.print(table)
-
     
     def prompt_panel(self, question: str, choices: Optional[List[int]] = None, default: Optional[int] = None) -> int:
         while True:

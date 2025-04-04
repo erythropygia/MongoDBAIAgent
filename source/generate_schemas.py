@@ -9,7 +9,7 @@ logger = RichLogger()
 
 class SchemaExtractor:
     def __init__(self):
-        pass
+        self.SCHEMA_FILE = "mongo_schema/mongo_schema.json"
 
     def db_connection_check(self, connection_string):
         try:
@@ -104,3 +104,59 @@ class SchemaExtractor:
         logger.log("Please update the YAML document with descriptions and enums (e.g., see example/mongo_schema_doc.yaml), then delete the faiss_mongo_schema folder and run the script again", style="bold red")
         logger.log("Default parameters using", style="bold red")
         logger.log("*********************************", style="bold red")
+
+
+    def get_mongo_schema(self, db_name, collection_name):
+        try:
+            with open(self.SCHEMA_FILE, 'r', encoding='utf-8') as file:
+                schema_data = json.load(file)
+        except FileNotFoundError:
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not found.", style="bold red")
+            return None
+        except json.JSONDecodeError:
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not in a valid JSON format.", style="bold red")
+            return None
+        except Exception as e:
+            logger.log(f"ERROR: An error occurred while reading the schema file: {e}", style="bold red")
+            return None
+
+        if db_name in schema_data:
+            db_schema = schema_data[db_name]
+            if collection_name in db_schema:
+                return db_schema[collection_name]
+        return None
+
+
+    def get_all_collections(self):
+        try:
+            with open(self.SCHEMA_FILE, 'r', encoding='utf-8') as file:
+                schema_data = json.load(file)
+        except FileNotFoundError:
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not found.", style="bold red")
+            return
+        except json.JSONDecodeError:
+            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not in a valid JSON format.", style="bold red")
+            return
+        except Exception as e:
+            logger.log(f"ERROR: An error occurred while reading the schema file: {e}", style="bold red")
+            return
+
+        table_data = []
+        result_data = []
+        itemno = 1 
+
+        for db_name, collections in schema_data.items():
+            for collection_name in collections:
+                table_data.append({
+                    "DB Name": db_name,
+                    "Collection Name": collection_name
+                })
+                result_data.append({
+                    "itemno": itemno,
+                    "db_name": db_name,
+                    "collection_name": collection_name
+                })
+                itemno += 1
+
+        logger.table("DB-COLLECTION List", table_data)
+        return result_data

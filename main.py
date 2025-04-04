@@ -118,6 +118,7 @@ class MongoAgent:
         if response is not None:
             logger.panel("EXECUTING RESULT", response, style= "bold green")
             for i in range(1, 3):
+                is_schema_error = False
                 while True:
                     confirmation = input("\nIs the response correct? (y/N) (type 'exit' to quit) : ").strip().lower()
                     if confirmation == "y":
@@ -127,14 +128,30 @@ class MongoAgent:
                         logger.panel("EXIT", "Exiting program. Goodbye!", style="bold purple")
                         sys.exit(1)
                     elif confirmation == "n":
+                        retry_reason_select = input("\n1. Wrong schema, 2. Describe the issue: ").strip()
+                        if retry_reason_select == "1":
+                            schema_list = self.schema_extractor.get_all_collections()
+                            selected_schema_input = input("\nSelect the schemas you want to use (comma or space separated): ").strip()
+                            selected_schema_indices = [int(i.strip()) - 1 for i in re.split('[, ]+', selected_schema_input) if i.strip().isdigit()]
+                            selected_schemas = [schema_list[i] for i in selected_schema_indices]
+
+                            schema_data = self.rag_handler.get_collection_data_from_yaml(selected_schemas)
+                            is_schema_error = True
+
+                            if len(schema_data) == 0:
+                                logger.panel("SCHEMA RESULT", "No suitable schema found. Please try again.", style="bold red")
+                                break
+
+                            retry_reason = query
+
+                        elif retry_reason_select == "2":
+                            retry_reason = input("\nWhat was incorrect? Please describe the issue: ").strip()
                         break
                     else:
                         logger.log("Please type y/n or exit.")
                         continue
-
-                retry_reason = input("\nWhat was incorrect? Please describe the issue: ").strip()
-
-                response = self.llm_pipeline.generate(query, schema_data, retry_reason, is_first = False)
+                    
+                response = self.llm_pipeline.generate(query, schema_data, retry_reason, is_first = False, is_schema_error = is_schema_error)
                 if response is not None:
                     logger.panel("EXECUTING RESULT",response, style= "bold green")
                 else:

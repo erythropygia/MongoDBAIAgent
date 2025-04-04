@@ -52,7 +52,7 @@ class LLMPipeline:
         self.schema_conservations.append({'role': "assistant", "content": response, 'model_type': self.model_type})
         return response
 
-    def generate(self, query, schema=None, retry_reason=None, is_first=True):
+    def generate(self, query, schema=None, retry_reason=None, is_first=True, is_schema_error=False):
         try_count = 0
         if is_first:
             self.conservations = [] 
@@ -71,7 +71,10 @@ class LLMPipeline:
 
             prompt = self.prompts[prompt_key].format(schema=schema, user_query=query)
         else:
-            prompt = retry_reason
+            if is_schema_error:
+                prompt = retry_reason + "\n" + str(schema)
+            else:
+                prompt = retry_reason
 
         self.conservations.append({'role': "user", "content": prompt, 'model_type': self.model_type})
 

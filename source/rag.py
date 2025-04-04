@@ -4,6 +4,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import pandas as pd
 from source.utils.logger import RichLogger
+from source.generate_schemas import SchemaExtractor
 
 import warnings, logging
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
@@ -27,6 +28,7 @@ class RagHandler:
         self.FAISS_DB = None
         self.MAX_COLLECTION_COUNTS = 0
         self.EXCEL_FILE = "faiss_mongo_schema/queries_for_rag.xlsx"
+        self.SCHEMA_EXTRACTOR = SchemaExtractor()
 
     def load_schema_into_faiss(self):
         """YAML şemasını FAISS içine yükler ve örnek sorguları ekler."""
@@ -107,7 +109,7 @@ class RagHandler:
         logger.log("Schema successfully loaded into FAISS.\n")
         self.FAISS_DB = FAISS.load_local(self.FAISS_INDEX, embeddings, allow_dangerous_deserialization=True)
 
-    def get_relevant_schema(self, user_query, similarity_threshold=0.6):
+    def get_relevant_schema(self, user_query, similarity_threshold=0.5):
         logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style="bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:
@@ -143,7 +145,7 @@ class RagHandler:
                 "Collection": collection_name,
                 "Enums": doc.metadata.get("Enums", "None"), 
                 "EnumsDescription": doc.metadata.get("EnumsDescription", None),
-                "Schema": self.get_mongo_schema(db_name, collection_name),
+                "Schema": self.SCHEMA_EXTRACTOR.get_mongo_schema(db_name, collection_name),
             }
 
             schema_info_list.append(schema_info)
@@ -172,23 +174,44 @@ class RagHandler:
         except Exception as e:
             logger.log(f"ERROR: An error occurred while reading the YAML file: {e}", style="bold red")
             return 0
-        
-    def get_mongo_schema(self, db_name, collection_name):
-        try:
-            with open(self.SCHEMA_FILE, 'r', encoding='utf-8') as file:
-                schema_data = json.load(file)
-        except FileNotFoundError:
-            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not found.", style="bold red")
-            return None
-        except json.JSONDecodeError:
-            logger.log(f"ERROR: Schema file '{self.SCHEMA_FILE}' not in a valid JSON format.", style="bold red")
-            return None
-        except Exception as e:
-            logger.log(f"ERROR: An error occurred while reading the schema file: {e}", style="bold red")
-            return None
+    
+    def get_collection_data_from_yaml(self, db_infos):
+        logger.panel("GETTING SCHEMAS", "Fetching schemas for given db & collection pairs...", style="bold cyan")
 
-        if db_name in schema_data:
-            db_schema = schema_data[db_name]
-            if collection_name in db_schema:
-                return db_schema[collection_name]
-        return None
+        with open(self.SCHEMA_DOC_FILE, "r", encoding="utf-8") as f:
+            yaml_data = yaml.safe_load(f)
+
+        schema_info_list = []
+
+        for db_info in db_infos:
+            db_name = db_info.get("db_name")
+            collection_name = db_info.get("collection_name")
+
+            found = False
+
+            for item in yaml_data.values():
+                parsed_doc = yaml.safe_load(item)
+
+                if (
+                    parsed_doc.get("DBName") == db_name
+                    and parsed_doc.get("Collection") == collection_name
+                ):
+                    schema_info = {
+                        "DBName": db_name,
+                        "Collection": collection_name,
+                        "Enums": parsed_doc.get("Enums", "None"),
+                        "EnumsDescription": parsed_doc.get("EnumsDescription", None),
+                        "Schema": self.SCHEMA_EXTRACTOR.get_mongo_schema(db_name, collection_name),
+                    }
+
+                    logger.table("Found Schema Information", schema_info)
+                    schema_info_list.append(schema_info)
+                    found = True
+                    break
+
+            if not found:
+                logger.log(f"ERROR: Schema for {db_name}.{collection_name} not found in YAML schema.", style="bold red")
+
+        return schema_info_list
+
+

@@ -105,6 +105,9 @@ class MongoAgent:
 
         if found_schemas:
             final_schemas =  self.extract_json_blocks(found_schemas)
+            if final_schemas is None:
+                logger.panel("SCHEMA RESULT", "LLM failed to generate correct schema, proceeding from RAG output", style="bold red")
+                final_schemas = schema_data     
         else:
             logger.panel("SCHEMA RESULT", "LLM failed to generate correct schema, proceeding from RAG output", style="bold red")
             final_schemas = schema_data

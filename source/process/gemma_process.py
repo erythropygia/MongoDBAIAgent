@@ -31,12 +31,6 @@ class GemmaProcess:
             sys.exit(1)
 
         self.MODEL_PATH = "model/gemma3_r1.gguf"
-        self.SYSTEM_MESSAGE = ""
-
-        if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
-            self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
-        else:
-            self.SYSTEM_MESSAGE = self.prompts["system_message_with_user_request"]
 
     def initialize_model(self):
         global LLM

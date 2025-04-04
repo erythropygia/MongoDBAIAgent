@@ -3,27 +3,6 @@ system_message: |
   Kullanıcının isteklerini gerçekleştirecek python kodları üret.
   **Ancak sadece okuma (`find`, `aggregate`) ve veri görselleştirme ve kaydetme işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
 
-system_message_with_user_request: |
-  Sen sadece Türkçe konuşan ve düşünen, MongoDB ve Python'da usta bir yapay zeka modelisin.
-  Kullanıcının isteklerini gerçekleştirecek Python kodları üretirken aşağıdaki kurallara uymalısın:
-  
-  - Sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.
-  - Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın.
-  - Verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**.
-  - Veri görselleştirme ve kaydetme işlemleri yapabilirsin.
-  
-  Aşağıdaki MongoDB şema(lar)ına dayanarak:
-  {schema}
-
-  Kullanıcının sorgusunu gerçekleştirmek için gerekli collection bilgilerini seç ve Python kodu yaz:
-  
-  {user_query}
-
-  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. Kodda aşağıdaki yapıyı uygula:
-  ```python
-  client = pymongo.MongoClient("mongodb://localhost:27017/")
-  ```
-
 ###############################
 ##### GEMMA3 - QWEN - R1 ######
 ##############################
@@ -84,7 +63,7 @@ system_message_with_user_request : |
   **Kullanıcı Sorgusu:**  
   {user_query}
 
-  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. Kodda aşağıdaki yapıyı uygula:
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. Kodda aşağıdaki python kodu yapıyı uygula:
   ```python
   client = pymongo.MongoClient("mongodb://localhost:27017/")
   ```
@@ -131,11 +110,9 @@ generate_mongo_query_gemini: |
 ######################
 
 check_schema_local: |
-  **{user_query}** işlemini gerçekleştirmek için gerekli olan db name ve collection bilgilerini <think>...</think> arasında adım adım düşünerek aşağıdaki şemadan yola çıkarak analiz et:
-
-  {schema}
-
-  <answer></answer> kısmında **sadece tek bir**  JSON listesi dön ve </answer> kısmından sonra **asla** bir şey yazma. Sorguyla ilişkilendirdiğin tüm db name ve collection bilgilerini yukarıdaki şemayı dikkate alarak listeye ekle. Her bir db name ve collection için aşağıdaki örnek cevaptaki alanları doldur:
+  **{user_query}** işlemini gerçekleştirmek için gerekli olan db name ve collection bilgilerini <think>...</think> arasında adım adım düşünerek mesajın sonundaki şemadan yola çıkarak analiz et:
+  <answer></answer> kısmında **sadece tek bir**  JSON listesi dön ve </answer> kısmından sonra **asla** bir şey yazma. **Sorguyla ilişkilendirdiğin** tüm db name ve collection bilgilerini yukarıdaki şemayı dikkate alarak listeye ekle, gereksizleri **ekleme**. 
+  Her bir db name ve collection için aşağıdaki örnek cevaptaki alanları doldur:
 
   Örnek cevap:
   <think>
@@ -155,6 +132,9 @@ check_schema_local: |
   ]
   ```
   </answer>
+
+  Şema ise aşağıdadır:
+  {schema}
 
 check_schema_gemini: |
   **({user_query})** sorgusunu gerçekleştirmek için gerekli olan db name ve collection bilgilerini aşağıdaki şemadan seç ve istenen formatta cevap ver:

@@ -30,7 +30,7 @@ class GemmaProcess:
             logger.panel("ERROR LOADING prompts.yaml", "Missing prompts.yaml in project folder! Please check your configuration.", style= "bold red")
             sys.exit(1)
 
-        self.MODEL_PATH = "model/gemma3_r1.gguf"
+        self.MODEL_PATH = "model/gemma-3-27b-it-q4_0.gguf"
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
             self.SYSTEM_MESSAGE = self.prompts["system_message_r1"]

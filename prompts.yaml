@@ -14,7 +14,7 @@ system_message_with_user_request : |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
 
-  Aşağıdaki kullanıcı sorgusunu gerçekleştirmek için gerekli collection bilgilerini seç ve Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
+  Aşağıdaki kullanıcı sorgusunu gerçekleştirmek için gerekli collection bilgilerini seç ve Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) veri görselleştirme ve kaydetme **işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
 
   **Kullanıcı Sorgusu:**  
   {user_query}
@@ -23,11 +23,7 @@ system_message_with_user_request : |
   ```python
   client = pymongo.MongoClient("mongodb://localhost:27017/")
   ```
-
-###############################
-##### GEMMA3 - QWEN - R1 ######
-##############################
-
+  
 system_message_r1: |
   Sen **sadece Türkçe konuşan ve düşünen**, MongoDB ve Python profesörü bir yapay zeka modelisin.
 
@@ -59,7 +55,25 @@ system_message_short_r1 : |
   Burada ise soruya net ve doğru bir python kodu oluştur. Oluşturduğun kod, <think></think> kısmında belirtilen mantıklı adımlara dayanmalı.
   </answer>
 
-system_message_with_user_request_r1 : |
+
+######################
+### GENERATE QUERY ###
+######################
+
+generate_mongo_query_local_r1: |
+  Aşağıdaki MongoDB şema(lar)ına dayanarak:
+  {schema}
+
+  Aşağıdaki kullanıcı sorgusunu gerçekleştirmek için gerekli collection bilgilerini seç ve Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
+  
+  {user_query}
+
+  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. 
+  Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. 
+  Kodda aşağıdaki yapıyı uygula:
+  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
+
+generate_mongo_query_with_system_message_local_r1 : |
   Sen **sadece Türkçe konuşan ve düşünen**, MongoDB ve Python profesörü bir yapay zeka modelisin.
 
   **‼️ DİKKAT: Kullanıcı yalnızca veri okuma işlemleri yapabilir.**
@@ -89,24 +103,6 @@ system_message_with_user_request_r1 : |
   client = pymongo.MongoClient("mongodb://localhost:27017/")
   ```
 
-######################
-### GENERATE QUERY ###
-######################
-
-generate_mongo_query_local: |
-  Aşağıdaki MongoDB şema(lar)ına dayanarak:
-  {schema}
-
-  Aşağıdaki kullanıcı sorgusunu gerçekleştirmek için gerekli collection bilgilerini seç ve Python kodu yaz **Ancak sadece okuma (`find`, `aggregate`) işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın:
-  
-  {user_query}
-
-  Lütfen sadece sorgu çalıştırmak için gerekli olan Python kodunu yaz. 
-  Kodda verilerdeki `_id`'leri ve şifre gibi özel alanları **gösterme**. 
-  Kodda aşağıdaki yapıyı uygula:
-  `client = pymongo.MongoClient("mongodb://localhost:27017/")`
-
-
 generate_mongo_query_gemini: |
   Aşağıdaki MongoDB şema(lar)ına dayanarak:
   {schema}
@@ -120,11 +116,10 @@ generate_mongo_query_gemini: |
   `client = pymongo.MongoClient("mongodb://localhost:27017/")`
   
   **Önemli:** 
-  - Kod yalnızca veri okuma (query) işlemlerini yapacak, **veri silme, güncelleme ya da ekleme** işlemleri **kesinlikle yapılmayacak**.
+  - **Ancak sadece okuma (`find`, `aggregate`) veri görselleştirme ve kaydetme **işlemleri yapabilirsin.** Silme (`delete`), güncelleme (`update`) veya ekleme (`insert`) işlemleri içeren kodlar yazmamalısın
   - Eğer kullanıcı şemada olmayan bir alan ya da işlev talep ederse, **"Bu işlemi gerçekleştirmeye yetkim yok"** mesajını ekrana yazan bir script oluştur.
   
   Eğer `try-catch` bloğu içinde bir hata oluşursa, hata mesajı olarak **"Exception"** yazılacak. Kod çalıştıktan sonra mutlaka bir **response** yazılacak ve başka hiçbir açıklama yapılmayacak.
-
 
 ######################
 ###  CHECK SCHEMA  ###

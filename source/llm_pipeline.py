@@ -61,11 +61,11 @@ class LLMPipeline:
 
         if is_first:
             if self.model_type == 0:
-                prompt_key = "generate_mongo_query_local"
+                prompt_key = "generate_mongo_query_local_r1"
             elif self.model_type == 1:
                 prompt_key = "generate_mongo_query_gemini"
             elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-R1":
-                prompt_key = "system_message_with_user_request_r1"
+                prompt_key = "generate_mongo_query_with_system_message_local_r1"
             elif self.model_type == 2 and self.model_process.get_model_type() == "Gemma3-Base":
                 prompt_key = "system_message_with_user_request"
 

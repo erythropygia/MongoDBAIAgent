@@ -42,7 +42,7 @@ Before you start using the agent, make sure you have the following:
    Run the application to get started:
 
    ```bash
-   python app.py
+   python main.py
    ```
 
 4. **Schema Creation (First-Time Setup):**

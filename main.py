@@ -38,6 +38,7 @@ class MongoAgent:
             "Local Model (Qwen)" if self.model_type == 0 else
             "Gemini" if self.model_type == 1 else
             "Local Model (Gemma3)" if self.model_type == 2 else
+            "Ollama" if self.model_type == 3 else
             "Unknown"
         )
         conn_result = self.schema_extractor.db_connection_check(self.connection_string)
@@ -190,13 +191,14 @@ def main():
     model_info = {
         "Local Model (Qwen)": 0,
         "Gemini": 1,
-        "Local Model (Gemma3)": 2
+        "Local Model (Gemma3)": 2,
+        "Ollama": 3,
     }
     logger.table("Model Type", model_info)
 
     model_type = logger.prompt_panel(
-        question="Select Model Type (0, 1 or 2)",
-        choices=[0, 1, 2]
+        question="Select Model Type (0, 1, 2 or 3)",
+        choices=[0, 1, 2, 3]
     )
 
     generator = MongoAgent(model_type)

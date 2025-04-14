@@ -1,6 +1,6 @@
 {
-    "Emotion4U_EvaluationDB": {
-        "AdvertisementDataAnalyses": {
+    "A": {
+        "Collection1": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -10,7 +10,7 @@
             "IsSuccessSent": "bool",
             "IsComplete": "bool"
         },
-        "DataAnalyses": {
+        "Collection2": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -99,7 +99,7 @@
             "IsDistilbertComplete": "bool",
             "IsLLMComplete": "bool"
         },
-        "Subscriptions": {
+        "Collection3": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -121,7 +121,7 @@
                 }
             }
         },
-        "CVAnalyses": {
+        "Collection4": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -131,7 +131,7 @@
             "IsSuccessSent": "bool",
             "IsComplete": "bool"
         },
-        "CVComparisons": {
+        "Collection5": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -144,8 +144,8 @@
             "IsComplete": "bool"
         }
     },
-    "Emotion4U_NotificationDB": {
-        "NotificationRequests": {
+    "B": {
+        "Collection1": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -155,7 +155,7 @@
             "NotificationType": "str",
             "Status": "str"
         },
-        "NotificationTemplates": {
+        "Collection2": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Subject": "str",
@@ -164,8 +164,8 @@
             "EventType": "str"
         }
     },
-    "Emotion4U_PaymentDB": {
-        "PaymentData": {
+    "C": {
+        "Collection1": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "PaymentId": "str",
@@ -183,7 +183,7 @@
             "AmountPaid": "float",
             "PaymentStatus": "str"
         },
-        "PaymentPackages": {
+        "Collection2": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Package": "str",
@@ -200,8 +200,8 @@
             }
         }
     },
-    "Emotion4U_UserDB": {
-        "UserVerificationTokens": {
+    "D": {
+        "Collection1": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "Email": "str",
@@ -209,7 +209,7 @@
             "ExpiresAt": "int",
             "IsTokenUsed": "bool"
         },
-        "User": {
+        "Collection2": {
             "_id": "ObjectId",
             "CreatedAt": "datetime",
             "FullName": "str",

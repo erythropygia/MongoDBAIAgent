@@ -93,9 +93,6 @@ class GemmaProcess:
             add_generation_prompt=True
         )
     
-    def my_log_callback(self, level, message, user_data):
-        pass
-
     def get_model_type(self):
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
             return "Gemma3-R1"

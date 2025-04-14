@@ -99,6 +99,3 @@ class QwenProcess:
             add_generation_prompt=True
         )
     
-    def my_log_callback(self, level, message, user_data):
-        pass
-

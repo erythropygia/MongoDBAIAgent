@@ -77,7 +77,7 @@ Before you start using the agent, make sure you have the following:
    The agent will prompt you to choose a **model type**. You can choose from:
 
    - **GGUF Qwen2.5**
-   - **Gemma3**
+   - **GGUF Gemma3**
    - **GeminiAPI**
    - **Ollama (LiteLLM)**
 

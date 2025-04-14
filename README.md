@@ -11,9 +11,8 @@ This agent is built to integrate with your MongoDB instance using advanced **RAG
 
 Before you start using the agent, make sure you have the following:
 
-1. **MongoDB** set up and accessible.
-2. **Python** installed on your system.
-3. **.env** file configured for your application. If you're unsure how to create it, follow the instructions below.
+1. **Python 3.9 (minimum)** installed on your system.
+2. **.env** file configured for your application. If you're unsure how to create it, follow the instructions below.
 
 ---
 

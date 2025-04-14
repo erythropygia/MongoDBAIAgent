@@ -108,4 +108,4 @@ The agent will walk you through these steps, ensuring a smooth experience with *
 
 ### Support
 
-If you encounter any issues or need help, feel free to reach out to our support team, or check the issues section of this repository for troubleshooting tips.
+If you encounter any issues or need help, feel free to reach out by opening an **Issue**, or contact us at **[linked](https://www.linkedin.com/in/erythropygia/)** for further assistance.

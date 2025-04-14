@@ -3,7 +3,6 @@ certifi>=2022.12.7
 pyyaml
 langchain>=0.0.166
 pandas>=1.4
-decouple
 google-generativeai>=0.1.1
 llama-cpp-python>=0.1.75
 sentence-transformers

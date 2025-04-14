@@ -113,12 +113,4 @@ The agent will walk you through these steps, ensuring a smooth experience. You w
 If you run into any issues or need help, feel free to reach out to our support team, or check the issues section of this repository for troubleshooting tips.
 
 ---
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Enjoy using the MongoDB AI Agent and happy querying! 😎
 ```

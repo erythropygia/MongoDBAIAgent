@@ -1,5 +1,3 @@
-İşte README.md dosyanızın süper hale getirilmiş versiyonu:
-
 ```markdown
 # MongoDB AI Agent
 

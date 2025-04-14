@@ -1,7 +1,7 @@
 ```markdown
 # MongoDB AI Agent
 
-**Hello All, Welcome to the MongoDB AI Agent!** 🚀
+**Hello All, Welcome to the MongoDB AI Agent!**
 
 This agent is built to integrate with your MongoDB instance using advanced **RAG** (Retrieval-Augmented Generation) capabilities. It supports the **GGUF Qwen2.5**, **Gemma3 models**, **GeminiAPI**, and all **Ollama models (LiteLLM)**.
 
@@ -13,6 +13,7 @@ Before you start using the agent, make sure you have the following:
 
 1. **Python 3.9 (minimum)** installed on your system.
 2. **.env** file configured for your application. If you're unsure how to create it, follow the instructions below.
+3. **Install required libraries** `pip install -r requirements.txt`
 
 ---
 

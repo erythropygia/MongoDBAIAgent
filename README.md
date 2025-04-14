@@ -111,6 +111,4 @@ The agent will walk you through these steps, ensuring a smooth experience. You w
 ### Support
 
 If you run into any issues or need help, feel free to reach out to our support team, or check the issues section of this repository for troubleshooting tips.
-
----
 ```

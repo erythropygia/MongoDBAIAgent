@@ -113,7 +113,7 @@ class RagHandler:
         logger.panel("SEARCHING SCHEMA", f"Getting relevant schema for your query... (threshold: %{similarity_threshold*100})", style="bold yellow")
 
         if self.MAX_COLLECTION_COUNTS == 0:
-            self.MAX_COLLECTION_COUNTS = self.get_max_collection_counts()
+            self.MAX_COLLECTION_COUNTS = self._get_max_collection_counts()
             if self.MAX_COLLECTION_COUNTS == 0:
                 logger.log("ERROR: Maximum collection count not found. Please check the YAML schema file.", style="bold red")
                 sys.exit(1)
@@ -155,7 +155,7 @@ class RagHandler:
         
         return schema_info_list
     
-    def get_max_collection_counts(self):
+    def _get_max_collection_counts(self):
         try:
             with open(self.SCHEMA_DOC_FILE, 'r', encoding='utf-8') as file:
                 content = file.read()

@@ -31,13 +31,11 @@ class RichLogger:
         table = Table(title=title, show_header=True, header_style="bold magenta")
 
         if isinstance(data, dict):
-            # Tek bir dict ise basit key-value tablosu
             table.add_column("Key", style="cyan", width=20)
             table.add_column("Value", style="green")
             for key, value in data.items():
                 table.add_row(str(key), str(value))
         elif isinstance(data, list) and all(isinstance(item, dict) for item in data):
-            # Liste içindeki tüm dict'lerin key'lerini topla
             keys = list({k for row in data for k in row.keys()})
 
             table.add_column("No", style="bold yellow", justify="right")  # sıra numarası kolonu

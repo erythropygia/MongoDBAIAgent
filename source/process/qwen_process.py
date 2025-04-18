@@ -1,6 +1,7 @@
 import yaml
 import sys
 import os
+from decouple import config
 from llama_cpp import Llama, llama_log_set
 import ctypes
 from transformers import AutoTokenizer
@@ -22,7 +23,6 @@ TOKENIZER = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
 
 class QwenProcess:
     def __init__(self):
-        # Load prompts from YAML file
         try:
             with open("prompts.yaml", "r", encoding="utf-8") as file:
                 self.prompts = yaml.safe_load(file)
@@ -30,7 +30,8 @@ class QwenProcess:
             logger.panel("ERROR LOADING prompts.yaml", "Missing prompts.yaml in project folder! Please check your configuration.", style= "bold red")
             sys.exit(1)
 
-        self.MODEL_PATH = "model/unsloth_r1_.Q4_K_M.gguf"
+
+        self.MODEL_PATH = config('GGUF_MODEL')
         self.SYSTEM_MESSAGE = ""
 
         if "r1" in self.MODEL_PATH or "R1" in self.MODEL_PATH:
@@ -43,7 +44,6 @@ class QwenProcess:
 
     def initialize_model(self):
         global LLM
-        """Initialize the LLaMA model for Qwen"""
         max_context_window = 32768
         LLM = Llama(model_path=self.MODEL_PATH,
                     n_gpu_layers=100,
@@ -51,7 +51,6 @@ class QwenProcess:
                     verbose=False)
 
     def _format_message(self, prompts):
-        """Format the messages into a structure compatible with Qwen model"""
         last_user_message = None
         for message in reversed(prompts):
             if message['role'] == 'user':
@@ -60,7 +59,6 @@ class QwenProcess:
         return last_user_message
 
     def generate_qwen(self, prompts, new_chat=False):
-        """Generate a response using the Qwen model based on input prompts"""
         global LLM
 
         if new_chat:
@@ -91,7 +89,6 @@ class QwenProcess:
         return assistant_message
 
     def _format_chat_template(self, prompts):
-        """Format the chat prompts using the tokenizer"""
         global TOKENIZER
         return TOKENIZER.apply_chat_template(
             prompts,

@@ -19,7 +19,7 @@ class SchemaExtractor:
         except ConnectionFailure:
             return False
 
-    def get_field_type(self, value):
+    def _get_field_type(self, value):
         if isinstance(value, dict):
             return "dict"
         elif isinstance(value, list):
@@ -39,16 +39,16 @@ class SchemaExtractor:
         else:
             return "unknown"
 
-    def analyze_document_structure(self, document):
+    def _analyze_document_structure(self, document):
         field_types = {}
 
         for key, value in document.items():
-            field_type = self.get_field_type(value)
+            field_type = self._get_field_type(value)
 
             if isinstance(value, dict):
-                field_types[key] = {"type": "dict", "structure": self.analyze_document_structure(value)}
+                field_types[key] = {"type": "dict", "structure": self._analyze_document_structure(value)}
             elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
-                field_types[key] = {"type": "list", "items": self.analyze_document_structure(value[0])}
+                field_types[key] = {"type": "list", "items": self._analyze_document_structure(value[0])}
             else:
                 field_types[key] = field_type
 

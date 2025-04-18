@@ -10,7 +10,7 @@ class CodeExecutor:
     def __init__(self):
         pass
     
-    def extract_and_update_mongodb_connection_string(self, text):
+    def _extract_and_update_mongodb_connection_string(self, text):
         start_marker = "```python"
         end_marker = "```"
         start_index = text.find(start_marker)
@@ -27,7 +27,7 @@ class CodeExecutor:
     def execute_generated_code(self, code):
 
         logger.log("Running script")
-        script, status = self.extract_and_update_mongodb_connection_string(code)
+        script, status = self._extract_and_update_mongodb_connection_string(code)
 
         if status == False:
             return "Script execution failed. Reason: Python script was not found in response's ```python ``` structure.", False 
@@ -42,8 +42,14 @@ class CodeExecutor:
                 script_dir = os.path.dirname(os.path.abspath(unique_file_name))
                 python_cmd = "python" if sys.platform.startswith("win") else "python3"
                 result = subprocess.run([python_cmd, unique_file_name], capture_output=True, text=True, timeout=60)
+                
+                stdout_output = result.stdout.strip()
+                stderr_output = result.stderr.strip()
+                combined_output = f"{stdout_output}\n{stderr_output}".lower()
 
-                if result.returncode != 0:
+                error_keywords = ["traceback", "exception", "error", "failed"]
+
+                if result.returncode != 0 or any(keyword in combined_output for keyword in error_keywords):
                     error_message = f"Script execution failed with exit code: {result.returncode}. Error details:\n{result.stderr.strip()}"
                     return error_message, False 
                 else:

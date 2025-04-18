@@ -24,16 +24,16 @@ class MongoAgent:
         self.code_executor = CodeExecutor()
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.folders_to_create = ['generated_scripts', 'model', 'mongo_schema', 'chat_history']
-        self.initialize_folders()
+        self._initialize_folders()
 
-    def initialize_folders(self):
+    def _initialize_folders(self):
         for folder in self.folders_to_create:
             folder_path = os.path.join(self.current_dir, folder)
             if not os.path.exists(folder_path):
                 logger.panel("INFO", f"{folder} folder not found. Creating...", style="bold blue")
                 os.makedirs(folder_path)
 
-    def connection_check(self):
+    def _connection_check(self):
         model_type_str = (
             "Local Model (Qwen)" if self.model_type == 0 else
             "Gemini" if self.model_type == 1 else
@@ -63,7 +63,7 @@ class MongoAgent:
                 style="bold blue"
             )
     
-    def initialize_schema(self):
+    def _initialize_schema(self):
         schema_file = "./mongo_schema/mongo_schema.json"
         yaml_schema_file = "./mongo_schema/mongo_schema_doc.yaml"
         if not os.path.exists(schema_file) or not os.path.exists(yaml_schema_file):
@@ -73,7 +73,7 @@ class MongoAgent:
         else:
             logger.panel("INFO", "Database schema file found. Loading schema...", style="bold blue")
 
-    def extract_json_blocks(self, text):
+    def _extract_json_blocks(self, text):
         if not isinstance(text, str):
             return None
         
@@ -94,7 +94,7 @@ class MongoAgent:
         
         return results
 
-    def process_query(self, query):
+    def _process_query(self, query):
 
         schema_data = self.rag_handler.get_relevant_schema(query)
 
@@ -105,7 +105,7 @@ class MongoAgent:
         found_schemas = self.llm_pipeline.check_found_schema(query, schema_data)
 
         if found_schemas:
-            final_schemas =  self.extract_json_blocks(found_schemas)
+            final_schemas =  self._extract_json_blocks(found_schemas)
             if final_schemas is None:
                 logger.panel("SCHEMA RESULT", "LLM failed to generate correct schema, proceeding from RAG output", style="bold red")
                 final_schemas = schema_data     
@@ -160,8 +160,8 @@ class MongoAgent:
 
     def run(self):
         self.code_executor.save_mongo_cs_for_execute(self.connection_string)
-        self.connection_check()
-        self.initialize_schema()
+        self._connection_check()
+        self._initialize_schema()
         self.rag_handler.load_schema_into_faiss()
 
         load_first = True
@@ -177,7 +177,7 @@ class MongoAgent:
             if user_query.lower() == "exit":
                 logger.panel("EXIT", "Exiting program. Goodbye!", style="bold purple")
                 sys.exit(1)
-            self.process_query(user_query)
+            self._process_query(user_query)
 
 
 def main():

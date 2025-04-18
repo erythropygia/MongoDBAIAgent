@@ -29,7 +29,7 @@ class GeminiProcess:
             config=types.GenerateContentConfig(system_instruction=self.SYSTEM_MESSAGE)
         )
     
-    def start_new_chat(self):
+    def _start_new_chat(self):
         try:
             self.chat = self.client.chats.create(
                 model="gemini-1.5-flash",
@@ -44,7 +44,7 @@ class GeminiProcess:
         try:
             if new_chat:
                 prompts.insert(0, {'role': "system", "content": self.SYSTEM_MESSAGE, 'model_type': 1})
-                self.start_new_chat()
+                self._start_new_chat()
             prompt = self._format_message(prompts)
             response = self.chat.send_message(prompt.strip())
             # Replace streaming prints with formatted log output

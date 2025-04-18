@@ -2,7 +2,10 @@
 
 **Hello All, Welcome to the MongoDB AI Agent!**
 
-This agent integrates with your MongoDB instance using advanced **RAG** (Retrieval-Augmented Generation) capabilities. It supports the **GGUF Qwen2.5**, **Gemma3 models**, **GeminiAPI**, and all **Ollama models (LiteLLM)**.
+This agent integrates with your MongoDB instance using advanced **RAG** (Retrieval-Augmented Generation) capabilities. It supports the **GGUF Qwen2.5**, **GGUF Gemma3 models**, **GeminiAPI**, and all **Ollama models (LiteLLM)**.
+
+**If you have R1 models in GGUF format, please rename the models to include the keyword "R1". :)**
+**There are Turkish example prompts in the prompts.yaml file — you can customize them according to your own needs.**
 
 ---
 
